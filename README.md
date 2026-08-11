@@ -28,6 +28,26 @@ python3 -m http.server 8000
 | `playlist.json` | Track list — edit this, not the JS |
 | `images/` | 4 illustrations, WebP + JPEG, 1920px + 1280px |
 | `fonts/` | Noto Sans Devanagari, self-hosted (OFL 1.1) |
+| `bus-horn.mp3` | Horn sting, played at random intervals |
+
+## The horn
+
+Sounds at a random gap of **40–95 seconds**, only while music is actually
+playing, never while muted, and never in a background tab. A skipped turn waits
+out a fresh interval, so two audible horns are never closer than 40s.
+
+Tuning constants live at the top of the `Horn` object in `app.js`:
+
+| Constant | Default | What it does |
+|---|---|---|
+| `MIN_GAP_MS` | `40000` | Floor between horns |
+| `MAX_GAP_MS` | `95000` | Ceiling between horns |
+| `VOLUME` | `0.42` | Level under the music |
+| `MAX_LEN_S` | `null` | Seconds to trim the clip to; `null` plays it whole |
+
+It uses Web Audio rather than an `<audio>` element because iOS ignores
+`HTMLAudioElement.volume` — an `<audio>` horn would blast at full device volume
+on every iPhone. A `GainNode` behaves everywhere.
 
 UI text is Hindi throughout. Every string lives in the `T` object at the top of
 `app.js` — change wording there, not in the markup.

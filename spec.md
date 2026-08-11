@@ -618,6 +618,44 @@ The passenger counter sits under the player.
 
 ---
 
+## 13. Bus horn
+
+A horn sting sounds at a random interval over the music. Requested floor: 40s
+between horns, longer is fine.
+
+- **Interval:** random in 40–95s. The floor holds in practice as well as in
+  theory — a turn skipped because playback is paused waits out a *fresh*
+  interval rather than firing immediately on resume, so two audible horns are
+  never closer than 40s.
+- **Gated on:** music actually playing, not muted, tab not hidden. A horn over
+  a paused page, or into a backgrounded tab, would read as a bug.
+- **Web Audio, not `<audio>`.** iOS ignores `HTMLAudioElement.volume`, so an
+  `<audio>` horn would play at full device volume on every iPhone regardless of
+  what we set. A `GainNode` is respected everywhere. The `AudioContext` is
+  constructed inside the play-button click, since one created outside a user
+  gesture starts suspended and never makes a sound.
+- **Degrades quietly:** no Web Audio support, or a missing/undecodable file, and
+  the horn simply never plays. Nothing else breaks.
+
+### 13.1 The clip is 9.75s — worth a decision
+
+The supplied file is 9.75s of stereo audio, not a short toot. Over a 40–95s
+cycle that is roughly **10–25% of the runtime with a horn sounding over the
+music**, which is a lot more horn than "occasional".
+
+Left at full length, because it is the file that was provided and trimming it
+unasked would be guessing at intent. `Horn.MAX_LEN_S` in `app.js` trims it to a
+given number of seconds — set it to `2` for a short blast — and the underlying
+file is untouched either way.
+
+### 13.2 File renamed
+
+Uploaded as `bus horn.mp3`; renamed to `bus-horn.mp3`. Spaces in asset names
+have to be percent-encoded in URLs and are a routine source of 404s on static
+hosts. Not worth the risk for a filename.
+
+---
+
 ## 11. Rough plan
 
 1. Scaffold `index.html` / `style.css` / `app.js`, landing gate, no audio.

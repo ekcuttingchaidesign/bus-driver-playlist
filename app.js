@@ -206,6 +206,77 @@
   };
 
   /* ------------------------------------------------------------------ *
+   * Horn                                                               *
+   *                                                                    *
+   * Sounds at a random interval, never less than MIN_GAP_MS apart.     *
+   *                                                                    *
+   * Web Audio rather than an <audio> element, for one reason: iOS      *
+   * ignores HTMLAudioElement.volume, so an <audio> horn would blast at *
+   * full device volume on every iPhone. A GainNode works everywhere.   *
+   * ------------------------------------------------------------------ */
+
+  const Horn = {
+    SRC:        'bus-horn.mp3',
+    MIN_GAP_MS: 40000,      // the floor asked for; real gaps land above it
+    MAX_GAP_MS: 95000,
+    VOLUME:     0.42,       // under the music, not over it
+    MAX_LEN_S:  null,       // set a number of seconds to trim the clip
+
+    ctx: null,
+    buffer: null,
+    timer: null,
+    armed: false,
+
+    // Must be called from inside a click handler: an AudioContext created
+    // outside a user gesture starts suspended and stays silent.
+    arm() {
+      if (this.armed) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;                       // no Web Audio: no horn, no error
+      this.armed = true;
+      try {
+        this.ctx = new AC();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      } catch {
+        this.armed = false;
+        return;
+      }
+      this._load().then(() => this._schedule());
+    },
+
+    async _load() {
+      try {
+        const res = await fetch(this.SRC);
+        this.buffer = await this.ctx.decodeAudioData(await res.arrayBuffer());
+      } catch {
+        this.buffer = null;                  // missing or undecodable: stay quiet
+      }
+    },
+
+    blast() {
+      if (!this.buffer) return;
+      const src = this.ctx.createBufferSource();
+      src.buffer = this.buffer;
+      const gain = this.ctx.createGain();
+      gain.gain.value = this.VOLUME;
+      src.connect(gain).connect(this.ctx.destination);
+      this.MAX_LEN_S ? src.start(0, 0, this.MAX_LEN_S) : src.start();
+    },
+
+    _schedule() {
+      clearTimeout(this.timer);
+      const wait = this.MIN_GAP_MS + Math.random() * (this.MAX_GAP_MS - this.MIN_GAP_MS);
+      this.timer = setTimeout(() => {
+        // Only over music that is actually playing, never while muted, never
+        // in a background tab. A skipped turn still waits out a fresh
+        // interval, so two audible horns are never closer than MIN_GAP_MS.
+        if (!document.hidden && !Player.muted && Player.isPlaying()) this.blast();
+        this._schedule();
+      }, wait);
+    },
+  };
+
+  /* ------------------------------------------------------------------ *
    * Playlist                                                           *
    * ------------------------------------------------------------------ */
 
@@ -384,6 +455,11 @@
       this._showTitle();
     },
 
+    isPlaying() {
+      try { return !!this.yt && this.yt.getPlayerState() === YT.PlayerState.PLAYING; }
+      catch { return false; }
+    },
+
     toggle() {
       if (!this.yt) return;
       if (this.yt.getPlayerState() === YT.PlayerState.PLAYING) {
@@ -456,13 +532,14 @@
     Player.create();
   })();
 
-  el.playBtn.addEventListener('click', () => Player.toggle());
+  // Horn.arm() must run inside the click itself — see the note on its arm().
+  el.playBtn.addEventListener('click', () => { Horn.arm(); Player.toggle(); });
   el.nextBtn.addEventListener('click', () => Player.next());
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
 
   document.addEventListener('keydown', (e) => {
     if (e.target.matches('input, textarea')) return;
-    if (e.code === 'Space') { e.preventDefault(); Player.toggle(); }
+    if (e.code === 'Space') { e.preventDefault(); Horn.arm(); Player.toggle(); }
     if (e.code === 'ArrowRight') Player.next();
     if (e.key.toLowerCase() === 'm') Player.toggleMute();
   });
