@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>उत्तर प्रदेश परिवहन सेवा</title>
+<title>उत्तर प्रदेश म्यूज़िकल सेवा</title>
 <meta name="description" content="लंबी दूरी की बसों में बजने वाले नब्बे के दशक के गाने।">
 <meta name="theme-color" content="#14100c">
 
-<meta property="og:title" content="उत्तर प्रदेश परिवहन सेवा">
+<meta property="og:title" content="उत्तर प्रदेश म्यूज़िकल सेवा">
 <meta property="og:description" content="आपका स्वागत करती है।">
 <meta property="og:type" content="website">
 
@@ -61,12 +61,20 @@
 </div>
 
 <header class="masthead">
-  <h1 class="masthead__title">उत्तर प्रदेश परिवहन सेवा</h1>
+  <h1 class="masthead__title">उत्तर प्रदेश म्यूज़िकल सेवा</h1>
   <p class="masthead__sub">आपका स्वागत करती है</p>
 </header>
 
-<!-- Populated from playlist.json → links. Stays hidden if none are set. -->
-<nav class="links" id="links" aria-label="कहीं और सुनिए" hidden></nav>
+<div class="topbar">
+  <!-- Populated from playlist.json → links. Stays hidden if none are set. -->
+  <nav class="links" id="links" aria-label="कहीं और सुनिए" hidden></nav>
+
+  <!-- Mutes everything: music, horn and ambience. -->
+  <button class="mute" id="muteBtn" type="button" aria-label="आवाज़ बंद करें">
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-loud"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-muted"><path d="M4 9v6h4l5 4V5L8 9H4zm11 1.4L16.6 12 15 13.6l1.1 1.1L17.7 13l1.6 1.6 1.1-1.1L18.8 12l1.6-1.6-1.1-1.1-1.6 1.6-1.6-1.6z"/></svg>
+  </button>
+</div>
 
 <!-- No entry gate: the play button click is itself the user gesture that
      browsers require before audio may start. The player loads cued and
@@ -109,10 +117,6 @@
       </button>
       <button class="btn" id="nextBtn" type="button" aria-label="अगला गाना">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5l9 7-9 7zM16 5h3v14h-3z"/></svg>
-      </button>
-      <button class="btn" id="muteBtn" type="button" aria-label="आवाज़ बंद करें">
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-loud"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
-        <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-muted"><path d="M4 9v6h4l5 4V5L8 9H4zm11 1.4L16.6 12 15 13.6l1.1 1.1L17.7 13l1.6 1.6 1.1-1.1L18.8 12l1.6-1.6-1.1-1.1-1.6 1.6-1.6-1.6z"/></svg>
       </button>
     </div>
   </div>

@@ -132,7 +132,10 @@ body{
 .masthead{
   position:fixed; z-index:30;
   top:0; left:0; right:0;
-  padding:calc(var(--pad) + .5rem) var(--pad) 3.4rem;
+  /* Top padding clears the topbar at every width. The title is capped at
+     5.46rem while the viewport keeps narrowing, so a centred line runs into
+     the right-hand controls from about 1280px down without this. */
+  padding:calc(var(--pad) + 3.4rem) var(--pad) 3.2rem;
   text-align:center;
   pointer-events:none;
 
@@ -149,8 +152,8 @@ body{
   margin:0;
   color:#fff;
   font-weight:800;
-  font-size:clamp(1.95rem, 7vw, 4.2rem);
-  line-height:1.2;
+  font-size:clamp(2.54rem, 9.1vw, 5.46rem);   /* +30% */
+  line-height:1.16;
   letter-spacing:.005em;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 6px 34px rgba(0,0,0,.62);
   text-wrap:balance;
@@ -160,8 +163,8 @@ body{
   margin:.5rem 0 0;
   color:rgba(255,255,255,.9);
   font-weight:600;
-  font-size:clamp(.95rem, 3vw, 1.35rem);
-  line-height:1.5;
+  font-size:clamp(1.24rem, 3.9vw, 1.76rem);   /* +30% */
+  line-height:1.45;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 4px 22px rgba(0,0,0,.55);
 }
 
@@ -421,12 +424,32 @@ body{
 
 /* listen-elsewhere links ------------------------------------------ */
 
-.links{
+.topbar{
   position:fixed; z-index:31;
   top:calc(var(--pad) + .4rem); right:var(--pad);
-  display:flex; gap:.4rem;
+  display:flex; align-items:center; gap:.4rem;
 }
+
+.links{ display:flex; gap:.4rem; }
 .links[hidden]{ display:none; }
+
+/* Site-wide mute: music, horn and ambience together. */
+.mute{
+  display:grid; place-items:center;
+  width:34px; height:34px;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:50%;
+  background:rgba(20,16,12,.42);
+  backdrop-filter:blur(8px);
+  color:#fff;
+  cursor:pointer;
+  transition:background 180ms, border-color 180ms, transform 180ms;
+}
+.mute:hover{ background:rgba(255,181,145,.24); border-color:rgba(255,181,145,.6); }
+.mute:active{ transform:scale(.94); }
+.mute:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+.mute svg{ width:16px; height:16px; fill:currentColor; }
+.mute.is-muted{ background:rgba(255,181,145,.26); border-color:rgba(255,181,145,.55); }
 
 .links a{
   display:inline-flex; align-items:center; gap:.42rem;
@@ -466,8 +489,8 @@ body{
 .ico-play, .ico-muted{ display:none; }
 .btn.is-paused .ico-play{ display:block; }
 .btn.is-paused .ico-pause{ display:none; }
-.btn.is-muted .ico-muted{ display:block; }
-.btn.is-muted .ico-loud { display:none; }
+.mute.is-muted .ico-muted{ display:block; }
+.mute.is-muted .ico-loud { display:none; }
 
 /* passengers ------------------------------------------------------ */
 
@@ -515,9 +538,8 @@ body{
 @media (max-width:640px){
   /* Right-aligned pills land on top of the centred title once it wraps, so
      they get their own centred row and the masthead starts below them. */
-  .links{ left:0; right:0; justify-content:center; top:calc(var(--pad) + .1rem); }
+  .topbar{ left:0; right:0; justify-content:center; top:calc(var(--pad) + .1rem); }
   .links a{ padding:.36rem .7rem; font-size:.72rem; }
-  .masthead{ padding-top:calc(var(--pad) + 3.1rem); }
 
   .player{ width:100%; padding-right:12px; }
   .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }

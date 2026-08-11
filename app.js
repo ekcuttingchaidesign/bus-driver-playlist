@@ -748,10 +748,14 @@
 
     // setVolume is a no-op on iOS (hardware-only), but mute/unmute works,
     // so mute is the control we expose.
+    // Site-wide: music, horn and ambience. Deliberately not gated on the
+    // YouTube player existing — the horn and ambience are ours, and they must
+    // still be silenceable if YouTube never loaded.
     toggleMute() {
-      if (!this.yt) return;
       this.muted = !this.muted;
-      this.muted ? this.yt.mute() : this.yt.unMute();
+      try {
+        if (this.yt) this.muted ? this.yt.mute() : this.yt.unMute();
+      } catch { /* player not ready */ }
       el.muteBtn.classList.toggle('is-muted', this.muted);
       el.muteBtn.setAttribute('aria-label', this.muted ? T.unmute : T.mute);
       Ambience.sync();   // mute silences the whole cabin, not just the songs

@@ -576,7 +576,7 @@ worker/            — counter service (Cloudflare Worker + Durable Object)
 
 ### 12.1 Copy is now Hindi throughout
 
-Masthead: **उत्तर प्रदेश परिवहन सेवा** (white, bold, 800 weight), with
+Masthead: **उत्तर प्रदेश म्यूज़िकल सेवा** (white, bold, 800 weight), with
 **आपका स्वागत करती है** beneath it. Every other string — controls, counter,
 errors, the boarding button — is Devanagari too, and `<html lang="hi">`.
 All UI text lives in the `T` object at the top of `app.js`, so wording changes
@@ -846,9 +846,11 @@ what is behind it.
 - **The label is English** ("Now Playing"). The spec gave 24% tracking, which
   only makes sense on Latin — applied to Devanagari it would break conjuncts.
   This is the one string not in Hindi (§12.1).
-- **Four controls, not three.** The mock shows prev / play / next; the build
-  also has mute. Dropping it removes the only volume control, which matters
-  most on iOS where `setVolume` does nothing.
+- ~~**Four controls, not three.**~~ **Resolved.** Mute moved out of the player
+  to the top bar as a site-wide control, so the player now matches the mock's
+  three buttons and mute silences music, horn and ambience together. It no
+  longer depends on the YouTube player existing — the horn and ambience are
+  ours, and must stay silenceable if YouTube never loads.
 - **A time readout** (`0:00 / 0:00`) sits under the bar; the mock has none.
 - **The blue ring** around the album art in the mock reads as a Figma selection
   outline rather than a design element, so it was not built. A soft white ring
