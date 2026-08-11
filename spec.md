@@ -1,15 +1,15 @@
 # Bus Driver Playlist — Specification
 
-**Status:** v1.1 — images received & compressed; live counter added. One open
-decision (§10.3). No site code written yet.
+**Status:** v1.2 — built. Site implemented and rendering; awaiting the curated
+song list and 9:16 image variants.
 **Date:** 2026-08-11
 
 **Decisions locked:** audio via YouTube IFrame API (§3, Option A) · images are
 AI-generated and owned by us (§4.3) · deploying as a public shareable link (§6b)
 · 4 images compressed 7.9 MB → 541 KB (§4.4).
 
-**Open:** which backend for the live passenger counter (§10.3) · portrait crop
-handling (§4.4b).
+**Open:** none blocking. Counter is simulated for now (§10.3, Option C, chosen
+knowingly) · portrait is centre-crop until 9:16 variants are produced (§4.4b).
 
 ---
 
@@ -463,13 +463,17 @@ around **200 concurrent connections**. A viral spike passes that in seconds.
 - Free tier ≈ 200 concurrent connections, then it degrades or cuts off. Fine
   for friends-and-family, wrong bet if this is meant to be shared publicly.
 
-**C. Simulated counter**
+**C. Simulated counter** — **CHOSEN**
 - A plausible-looking number generated client-side, no backend, no cost.
-- It is a lie told to every visitor, and a trivially discoverable one — the
-  number is right there in the JS. For a site whose entire appeal is shared
-  nostalgia, getting caught faking the "we're all here together" number is a
-  genuinely bad trade. **Not recommended.** Noted only because it is the
-  obvious cheap route and should be rejected knowingly rather than by omission.
+- The trade was raised and accepted: the number is visible in the JS to anyone
+  who looks, and on a site about being somewhere together, being caught faking
+  it costs more than the feature is worth. Decision taken knowingly.
+- **Mitigation that matters:** it is implemented behind the exact async
+  interface a real backend would expose — `Passengers.get() → Promise<number>`.
+  Switching to Option A later replaces one function body with a `fetch()`; no
+  other code changes. The simulation is a swappable adapter, not a dead end.
+- The simulation drifts on a random walk rather than jumping, and is weighted
+  by Indian time-of-day so an evening visitor sees a busier bus.
 
 ### 10.4 Behaviour details
 
