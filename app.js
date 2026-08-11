@@ -378,6 +378,7 @@
   // Sounds at a random interval, never less than MIN_GAP_MS apart.
   const Horn = {
     SRC:        'bus-horn.mp3',
+    FIRST_MS:   45000,      // first blast lands 45s into the visit
     MIN_GAP_MS: 40000,      // the floor asked for; real gaps land above it
     MAX_GAP_MS: 95000,
     VOLUME:     0.42,       // under the music, not over it
@@ -386,6 +387,7 @@
     buffer: null,
     timer: null,
     armed: false,
+    _first: true,
 
     async arm() {
       if (this.armed || !AudioBus.ctx) return;
@@ -407,12 +409,21 @@
 
     _schedule() {
       clearTimeout(this.timer);
-      const wait = this.MIN_GAP_MS + Math.random() * (this.MAX_GAP_MS - this.MIN_GAP_MS);
+
+      // First one is fixed at 45s into the visit; after that, random.
+      const wait = this._first
+        ? this.FIRST_MS
+        : this.MIN_GAP_MS + Math.random() * (this.MAX_GAP_MS - this.MIN_GAP_MS);
+      this._first = false;
+
       this.timer = setTimeout(() => {
-        // Only over music that is actually playing, never while muted, never
-        // in a background tab. A skipped turn still waits out a fresh
-        // interval, so two audible horns are never closer than MIN_GAP_MS.
-        if (!document.hidden && !Player.muted && Player.isPlaying()) this.blast();
+        // Gated like the ambience — not on the music. At 45s a visitor may
+        // still be listening to traffic without having pressed play, and a
+        // horn belongs there. Never while muted, never in a hidden tab.
+        // A skipped turn waits out a fresh interval, so two audible horns
+        // are never closer than MIN_GAP_MS.
+        const awake = AudioBus.ctx && AudioBus.ctx.state === 'running';
+        if (awake && !document.hidden && !Player.muted) this.blast();
         this._schedule();
       }, wait);
     },

@@ -803,6 +803,59 @@ Reproducing this from a new source file: decode → mono/32 kHz → take
 
 ---
 
+## 15. Player visual spec (Figma)
+
+Typography **Host Grotesk**, self-hosted from Google Fonts — one 20 KB variable
+file covers every weight. It carries Latin only; Devanagari still falls through
+to Noto via `unicode-range`, so the masthead is unaffected.
+
+| Token | Value |
+|---|---|
+| Label | Host Grotesk 700, 24% tracking, uppercase, `#FFB591` |
+| Title | Host Grotesk 700, `#FFFFFF` |
+| Fill | `#D9D9D9` @ 20% |
+| Stroke | 2px outside, `#B5B5B5` 100% → 0% → 100% |
+
+The stroke is drawn as a true ring: a `::before` inset by −2px with 2px padding,
+masked so the padding box is excluded from the border box. That is the only way
+to get a *gradient* border in CSS — `border-image` cannot follow a radius.
+
+### 15.1 Liquid glass — what CSS can and cannot do
+
+Figma's glass is a rendering shader that genuinely refracts and disperses what
+is behind it. **CSS has no equivalent.** There is no refraction primitive, no
+per-channel dispersion, no depth. So the parameters map onto approximations:
+
+| Figma | CSS stand-in | Faithful? |
+|---|---|---|
+| Frost 8 | `backdrop-filter: blur(9px)` | Yes |
+| Refraction 80 | `saturate(180%) brightness(1.06)` on the backdrop | Loosely — bends nothing, just enriches |
+| Depth 28 | inset specular highlights + cast shadow | Suggestion only |
+| Light −45° | highlight top-left, falloff bottom-right | Yes, as direction |
+| Dispersion 63 | faint blue/warm split at the rim | Heavily toned down |
+| Splay 0 | no spread on the inner shadows | Yes |
+
+Dispersion is the big compromise. Rendered near its nominal strength it reads as
+a rendering fault rather than glass, so it sits far below 63. If the real effect
+matters more than page weight, the alternative is exporting the pill from Figma
+as an image — at the cost of it no longer resizing, reflowing, or adapting to
+what is behind it.
+
+### 15.2 Departures from the mock — need a decision
+
+- **The label is English** ("Now Playing"). The spec gave 24% tracking, which
+  only makes sense on Latin — applied to Devanagari it would break conjuncts.
+  This is the one string not in Hindi (§12.1).
+- **Four controls, not three.** The mock shows prev / play / next; the build
+  also has mute. Dropping it removes the only volume control, which matters
+  most on iOS where `setVolume` does nothing.
+- **A time readout** (`0:00 / 0:00`) sits under the bar; the mock has none.
+- **The blue ring** around the album art in the mock reads as a Figma selection
+  outline rather than a design element, so it was not built. A soft white ring
+  is there instead, spinning while playing.
+
+---
+
 ## 11. Rough plan
 
 1. Scaffold `index.html` / `style.css` / `app.js`, landing gate, no audio.

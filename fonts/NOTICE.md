@@ -17,3 +17,13 @@ Both are variable weight (100–900), so one file covers every weight the site
 uses. Only the Devanagari file is fetched by browsers rendering Devanagari
 text; `unicode-range` in `style.css` keeps the Latin subset from downloading
 unless it is needed.
+
+**Host Grotesk** — © The Host Grotesk Project Authors.
+Licensed under the SIL Open Font License, Version 1.1.
+
+| File | Subset | Size |
+|---|---|---|
+| `hostgrotesk.woff2` | Latin | 20 KB |
+
+Variable weight (100–900), so one file covers every weight the player uses.
+Latin only — Devanagari falls through to Noto via `unicode-range`.

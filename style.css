@@ -3,6 +3,17 @@
 
 /* ---------- fonts (self-hosted, see fonts/NOTICE.md) ---------- */
 
+/* Latin. Variable, so one file covers every weight. Devanagari text falls
+   through to Noto below via unicode-range. */
+@font-face{
+  font-family:'Host Grotesk';
+  src:url('fonts/hostgrotesk.woff2') format('woff2');
+  font-weight:100 900;
+  font-display:swap;
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+                U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
 @font-face{
   font-family:'Noto Sans Devanagari';
   src:url('fonts/noto-devanagari.woff2') format('woff2');
@@ -41,8 +52,13 @@
 
   /* Devanagari first; the rest are the OS Hindi faces, for the moment
      before the webfont lands and if it ever fails to. */
-  --font:     'Noto Sans Devanagari', 'Nirmala UI', 'Kohinoor Devanagari',
-              'Mangal', 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
+  --font:     'Host Grotesk', 'Noto Sans Devanagari', 'Nirmala UI',
+              'Kohinoor Devanagari', 'Mangal', ui-sans-serif, system-ui, sans-serif;
+
+  /* Player palette, from the Figma spec. */
+  --glass-fill:   rgba(217,217,217,.20);   /* #D9D9D9 @ 20% */
+  --glass-stroke: #B5B5B5;
+  --accent:       #FFB591;
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
@@ -165,17 +181,64 @@ body{
 
 /* player ---------------------------------------------------------- */
 
+/* Liquid glass. Figma's effect is a real refraction shader; CSS has no such
+   thing, so this reproduces what the browser can actually do — frost, a
+   fill, a fading edge stroke, and inset highlights standing in for depth —
+   and approximates the rest. See spec.md §15. */
 .player{
+  position:relative;
   display:flex; align-items:center;
   padding:10px;
   padding-right:clamp(14px, 3vw, 22px);
-  border:1px solid rgba(255,255,255,.5);
-  border-radius:999px;       /* pill — the ends are semicircles of the disc */
-  background:rgba(20,16,12,.60);
-  backdrop-filter:blur(14px);
-  box-shadow:0 18px 52px rgba(0,0,0,.52);
+  border:0;
+  border-radius:999px;
+  background:var(--glass-fill);
+
+  /* Frost 8 + refraction, as far as a backdrop filter goes. */
+  backdrop-filter:blur(9px) saturate(180%) brightness(1.06);
+  -webkit-backdrop-filter:blur(9px) saturate(180%) brightness(1.06);
+
+  /* Depth 28: specular run along the -45° light direction (top-left in,
+     bottom-right out), plus the cast shadow. */
+  box-shadow:
+    inset 1px 1px 1px rgba(255,255,255,.55),
+    inset -1px -1px 1px rgba(255,255,255,.14),
+    inset 0 14px 28px -18px rgba(255,255,255,.5),
+    0 18px 52px rgba(0,0,0,.45);
+
   width:auto;                /* shrink-wraps the fixed title width below */
   max-width:94vw;
+}
+
+/* Gradient stroke: 2px outside, #B5B5B5 opaque → transparent → opaque.
+   Drawn as a ring by masking the padding box out of the border box. */
+.player::before{
+  content:'';
+  position:absolute; inset:-2px;
+  border-radius:inherit;
+  padding:2px;
+  background:linear-gradient(100deg,
+    rgba(181,181,181,1) 0%,
+    rgba(181,181,181,0) 48%,
+    rgba(181,181,181,0) 56%,
+    rgba(181,181,181,1) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite:exclude;
+  pointer-events:none;
+}
+
+/* Dispersion 63: a faint chromatic split at the rim. Subtle on purpose —
+   at full strength it reads as a rendering fault rather than glass. */
+.player::after{
+  content:'';
+  position:absolute; inset:-2px;
+  border-radius:inherit;
+  pointer-events:none;
+  box-shadow:
+    inset 1px 0 1.5px rgba(120,190,255,.28),
+    inset -1px 0 1.5px rgba(255,150,120,.26);
 }
 
 /* Record ring. Sits *behind* and slightly proud of the disc, so it never
@@ -194,10 +257,10 @@ body{
   border-radius:50%;
   background:
     conic-gradient(from 0deg,
-      rgba(232,163,61,.85) 0deg 14deg,
-      rgba(244,230,205,.16) 14deg 120deg,
-      rgba(244,230,205,.30) 120deg 240deg,
-      rgba(244,230,205,.16) 240deg 360deg);
+      rgba(255,255,255,.9) 0deg 12deg,
+      rgba(255,255,255,.18) 12deg 120deg,
+      rgba(255,255,255,.34) 120deg 240deg,
+      rgba(255,255,255,.18) 240deg 360deg);
   animation:spin 7s linear infinite;
   animation-play-state:paused;      /* runs only while the music plays */
   pointer-events:none;
@@ -214,7 +277,7 @@ body{
   background:#000;
   box-shadow:
     inset 0 0 0 3px rgba(20,16,12,.92),
-    inset 0 0 0 4px rgba(232,163,61,.38),
+    inset 0 0 0 4px rgba(255,255,255,.34),
     0 6px 18px rgba(0,0,0,.55);
 }
 
@@ -246,10 +309,12 @@ body{
 }
 
 .player__label{
-  margin:0 0 .14rem;
-  font-size:.66rem; font-weight:600;
-  letter-spacing:.02em;
-  color:var(--amber);
+  margin:0 0 .2rem;
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.24em;       /* 24%, per the spec */
+  text-transform:uppercase;
+  color:var(--accent);
 }
 
 /* A fixed one-line window. Titles that fit sit centred; titles that don't
@@ -263,10 +328,11 @@ body{
   display:flex;
   justify-content:flex-start;
   overflow:hidden;
-  font-size:clamp(.86rem, 2.5vw, .98rem);
-  font-weight:600;
-  line-height:1.4;
-  height:1.4em;             /* the defined space for the title */
+  font-size:clamp(1rem, 2.7vw, 1.22rem);
+  font-weight:700;
+  color:#fff;
+  line-height:1.32;
+  height:1.32em;            /* the defined space for the title */
 
   /* Static: fade the right edge only. A left fade would wash out the first
      characters of a left-aligned title that isn't going anywhere. */
@@ -322,22 +388,22 @@ body{
 
 .seek__track{
   position:absolute; inset-inline:0; top:50%;
-  height:3px; transform:translateY(-50%);
+  height:5px; transform:translateY(-50%);
   border-radius:999px;
-  background:rgba(244,230,205,.22);
+  background:rgba(255,255,255,.30);
   overflow:hidden;
 }
 .seek__fill{
   height:100%; width:0%;
   border-radius:999px;
-  background:var(--amber);
+  background:var(--accent);
 }
 .seek__knob{
   position:absolute; top:50%; left:0;
   width:10px; height:10px;
   transform:translate(-50%,-50%);
   border-radius:50%;
-  background:var(--cream);
+  background:#fff;
   box-shadow:0 1px 4px rgba(0,0,0,.6);
   opacity:0;
   transition:opacity 160ms;
@@ -347,10 +413,10 @@ body{
 .seek.is-dragging .seek__knob{ opacity:1; }
 
 .seek__time{
-  margin:.3rem 0 0;
-  font-size:.64rem;
+  margin:.32rem 0 0;
+  font-size:.66rem;
   font-variant-numeric:tabular-nums;
-  color:rgba(244,230,205,.5);
+  color:rgba(255,255,255,.6);
 }
 
 /* listen-elsewhere links ------------------------------------------ */
@@ -379,20 +445,22 @@ body{
 .links svg{ width:15px; height:15px; fill:currentColor; flex:0 0 auto; }
 
 .btn{
-  width:36px; height:36px;
+  width:42px; height:42px;
   display:grid; place-items:center;
-  border:1px solid rgba(244,230,205,.16);
+  border:0;
   border-radius:50%;
-  background:rgba(244,230,205,.05);
-  color:var(--cream);
+  background:rgba(255,255,255,.22);
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.4);
+  color:#fff;
   cursor:pointer;
-  transition:background 180ms, border-color 180ms;
+  transition:background 180ms, transform 180ms;
 }
-.btn:hover{ background:rgba(232,163,61,.18); border-color:rgba(232,163,61,.5); }
-.btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
-.btn svg{ width:16px; height:16px; fill:currentColor; }
-.btn--sm{ width:32px; height:32px; }
-.btn--sm svg{ width:14px; height:14px; }
+.btn:hover{ background:rgba(255,255,255,.34); }
+.btn:active{ transform:scale(.94); }
+.btn:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+.btn svg{ width:18px; height:18px; fill:currentColor; }
+.btn--sm{ width:38px; height:38px; }
+.btn--sm svg{ width:16px; height:16px; }
 
 /* icon swapping */
 .ico-play, .ico-muted{ display:none; }
