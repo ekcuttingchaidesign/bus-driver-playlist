@@ -1,8 +1,10 @@
 name: Deploy to GitHub Pages
 
+# The github-pages environment only accepts deploys from the default branch,
+# so this runs on main rather than a feature branch.
 on:
   push:
-    branches: [claude/bus-driver-playlist-spec-xmy1ps]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -24,11 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # enablement: true turns Pages on if it has never been configured,
-      # so this needs no manual setup in repository settings.
+      # Pages is already enabled in repository settings with source
+      # "GitHub Actions", so this only needs to read that configuration.
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       # The site is static at the repo root — no build step.
       - uses: actions/upload-pages-artifact@v3
