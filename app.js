@@ -13,6 +13,9 @@
   // handling. Must match --disc-native in style.css.
   const DISC_NATIVE = 200;
 
+  const MARQUEE_GAP_PX = 40;   // must match --marquee-gap in style.css
+  const MARQUEE_SPEED  = 42;   // px per second — comfortable reading pace
+
   const T = {
     engine:    'इंजन चालू हो रहा है…',
     loading:   'लोड हो रहा है…',
@@ -92,6 +95,58 @@
       this.timer = null;
     },
   };
+
+  /* ------------------------------------------------------------------ *
+   * Title                                                              *
+   *                                                                    *
+   * Fits on one line where it can, centred. Where it can't, a second   *
+   * copy is appended and the pair scrolls, so the loop is seamless     *
+   * rather than snapping back. The window is mask-faded in CSS, so     *
+   * overflow reads as continuing rather than being chopped off.        *
+   * ------------------------------------------------------------------ */
+
+  const Title = {
+    _text: '',
+
+    set(text) {
+      this._text = text || '';
+      const view = el.title;
+
+      view.classList.remove('is-scrolling');
+      view.textContent = '';
+
+      const track = document.createElement('span');
+      track.className = 'title__track';
+      const first = document.createElement('span');
+      first.textContent = this._text;
+      track.appendChild(first);
+      view.appendChild(track);
+
+      // Measure after layout, or the width is whatever it was last frame.
+      requestAnimationFrame(() => {
+        const textW = Math.ceil(first.getBoundingClientRect().width);
+        if (!textW || textW <= view.clientWidth) return;
+
+        const clone = first.cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');  // don't read it twice
+        track.appendChild(clone);
+
+        const distance = textW + MARQUEE_GAP_PX;
+        track.style.setProperty('--marquee-distance', `${distance}px`);
+        track.style.setProperty('--marquee-duration', `${distance / MARQUEE_SPEED}s`);
+        view.classList.add('is-scrolling');
+      });
+    },
+
+    // Width changes on rotate/resize flip whether scrolling is needed.
+    refresh() { if (this._text) this.set(this._text); },
+  };
+
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => Title.refresh(), 180);
+  });
 
   /* ------------------------------------------------------------------ *
    * Passenger counter                                                  *
@@ -288,11 +343,11 @@
       let name = '';
       try { name = this.yt.getVideoData().title || ''; } catch { /* not ready */ }
       const meta = Playlist.current();
-      el.title.textContent = (meta && meta.title) || name || T.unknown;
+      Title.set((meta && meta.title) || name || T.unknown);
     },
 
     _fail(msg) {
-      el.title.textContent = msg;
+      Title.set(msg);
     },
 
     play(track) {

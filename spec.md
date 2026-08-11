@@ -563,11 +563,26 @@ vertically centred against the art, and the controls are set off to the right
 with their own margin. With the disc at 80px there is no longer any reason to
 stack on mobile, so the shape stays consistent.
 
-**Titles clamp to two lines.** Real YouTube titles run long — *"Song | Film |
-Artist | Full Video Song"* — and the middle column is narrow once the disc and
-three controls take their share (≈126px on a 390px phone). A single line
-stranded almost all of it; two lines with ellipsis recover most of it and still
-fit inside the 80px disc height.
+**Titles: one line, marquee on overflow, soft-masked.** Real YouTube titles run
+long — *"Song | Film | Artist | Full Video Song"* — and the middle column is
+narrow once the disc and three controls take their share (≈126px on a 390px
+phone). The title gets a fixed one-line window:
+
+- Fits → centred, static.
+- Doesn't fit → a second copy is appended and the pair scrolls at 42px/s. Two
+  copies make the loop seamless rather than snapping back at the end.
+- Either way the window is **mask-faded** at both edges
+  (`mask-image: linear-gradient`), so overflow reads as continuing rather than
+  being chopped. No ellipsis, no hard cut.
+- Overflow is measured in a `requestAnimationFrame` after the text is in the
+  DOM, and re-measured (debounced) on resize, since rotating a phone flips
+  whether scrolling is needed. The track and its spans are `flex: 0 0 auto` —
+  without that they would shrink to fit and never register as overflowing.
+- Under `prefers-reduced-motion` the animation is off; the mask still fades the
+  overflow, so it degrades to a soft cut rather than a hard one.
+
+`MARQUEE_GAP_PX` in `app.js` must stay equal to `--marquee-gap` in `style.css`;
+the gap is part of the scroll distance.
 
 Masthead is fixed top-centre and persists across both the gate and playback.
 The passenger counter sits under the player.

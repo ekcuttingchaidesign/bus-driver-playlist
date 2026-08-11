@@ -260,20 +260,49 @@ body{
   color:var(--amber);
 }
 
-/* Two lines, then ellipsis. YouTube titles run long ("Song | Film | Artist |
-   Full Video Song"), and a single line strands most of that — especially on a
-   phone, where the disc and controls leave the middle column narrow. */
+/* A fixed one-line window. Titles that fit sit centred; titles that don't
+   scroll as a marquee. Both edges are mask-faded rather than clipped, so a
+   long title never ends in a hard cut. */
 .player__title{
+  --fade: 18px;
+  --marquee-gap: 40px;      /* must match MARQUEE_GAP_PX in app.js */
+
   margin:0;
+  display:flex;
+  justify-content:center;
+  overflow:hidden;
   font-size:clamp(.86rem, 2.5vw, .98rem);
   font-weight:600;
-  line-height:1.34;
-  overflow:hidden;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow-wrap:anywhere;
+  line-height:1.4;
+  height:1.4em;             /* the defined space for the title */
+
+  -webkit-mask-image:linear-gradient(90deg,
+    transparent 0, #000 var(--fade),
+    #000 calc(100% - var(--fade)), transparent 100%);
+  mask-image:linear-gradient(90deg,
+    transparent 0, #000 var(--fade),
+    #000 calc(100% - var(--fade)), transparent 100%);
+}
+
+/* Scrolling starts from the left edge; centring only applies when it fits. */
+.player__title.is-scrolling{ justify-content:flex-start; }
+
+.title__track{
+  display:flex;
+  flex:0 0 auto;                     /* never shrink, or it can't overflow */
+  gap:var(--marquee-gap);
+  white-space:nowrap;
+}
+.title__track > span{ flex:0 0 auto; }
+
+.player__title.is-scrolling .title__track{
+  animation:marquee var(--marquee-duration, 12s) linear infinite;
+  will-change:transform;
+}
+
+@keyframes marquee{
+  from{ transform:translateX(0); }
+  to  { transform:translateX(calc(-1 * var(--marquee-distance, 0px))); }
 }
 
 .player__controls{
@@ -339,4 +368,7 @@ body{
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }
   .gate{ transition:none; }
+  /* No scrolling. The mask still fades the overflow, so it reads as
+     "continues" rather than being chopped off. */
+  .player__title.is-scrolling .title__track{ animation:none; }
 }
