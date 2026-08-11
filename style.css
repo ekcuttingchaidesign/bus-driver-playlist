@@ -210,7 +210,7 @@ body{
 
 .player{
   display:flex; align-items:center;
-  gap:clamp(12px, 2.4vw, 18px);
+  gap:28px;                  /* art ↔ title, and title ↔ controls */
   padding:10px;
   padding-right:clamp(14px, 3vw, 22px);
   border:1px solid rgba(255,255,255,.5);
@@ -250,7 +250,7 @@ body{
 /* Sits between disc and controls, vertically centred against the art. */
 .player__meta{
   min-width:0; flex:1 1 auto;
-  text-align:center;
+  text-align:left;
 }
 
 .player__label{
@@ -269,13 +269,23 @@ body{
 
   margin:0;
   display:flex;
-  justify-content:center;
+  justify-content:flex-start;
   overflow:hidden;
   font-size:clamp(.86rem, 2.5vw, .98rem);
   font-weight:600;
   line-height:1.4;
   height:1.4em;             /* the defined space for the title */
 
+  /* Static: fade the right edge only. A left fade would wash out the first
+     characters of a left-aligned title that isn't going anywhere. */
+  -webkit-mask-image:linear-gradient(90deg,
+    #000 0, #000 calc(100% - var(--fade)), transparent 100%);
+  mask-image:linear-gradient(90deg,
+    #000 0, #000 calc(100% - var(--fade)), transparent 100%);
+}
+
+/* Scrolling: fade both edges, so text enters and leaves softly. */
+.player__title.is-scrolling{
   -webkit-mask-image:linear-gradient(90deg,
     transparent 0, #000 var(--fade),
     #000 calc(100% - var(--fade)), transparent 100%);
@@ -283,9 +293,6 @@ body{
     transparent 0, #000 var(--fade),
     #000 calc(100% - var(--fade)), transparent 100%);
 }
-
-/* Scrolling starts from the left edge; centring only applies when it fits. */
-.player__title.is-scrolling{ justify-content:flex-start; }
 
 .title__track{
   display:flex;
@@ -307,8 +314,7 @@ body{
 
 .player__controls{
   display:flex; gap:.35rem;
-  flex:0 0 auto;
-  margin-left:clamp(6px, 1.6vw, 14px);
+  flex:0 0 auto;              /* spacing comes from the .player gap */
 }
 
 .btn{
@@ -351,8 +357,16 @@ body{
 /* ---------- responsive ---------- */
 
 /* Mobile keeps the same horizontal rounded rectangle — the small disc means
-   there is no longer any need to stack it into a card. */
+   there is no longer any need to stack it into a card.
+
+   The 28px gaps that suit desktop leave only ~85px of title window on a 390px
+   phone (57px at 360px), so every title marquees permanently and reads as
+   broken. Trimming the gaps and controls here brings it back to ~120px. To
+   force a strict 28px everywhere, delete this block. */
 @media (max-width:640px){
+  .player{ gap:16px; padding-right:12px; }
+  .player__controls{ gap:.3rem; }
+  .btn{ width:34px; height:34px; }
   .gate{ padding-top:calc(var(--pad) + 7rem); }
 }
 
