@@ -432,20 +432,55 @@ Not decisions — just things only you can hand over:
 
 ---
 
-## 8. Verification still owed
+## 8. saloon.wtf — RESOLVED
 
-Because saloon.wtf could not be reached from this environment, before or during
-implementation someone should open it on an unrestricted machine and record:
+The site was never reachable from this environment (egress proxy, 403 on
+CONNECT, every attempt). Its served HTML was pasted in instead, so §1.1's
+inference can now be replaced with observation.
 
-1. What the audio source actually is (YouTube iframe? self-hosted? something
-   else?) — view source / network tab.
-2. Whether there is an entry gate, and what it says.
-3. What the visual layer is — static image, slideshow, video, canvas?
-4. What controls exist.
-5. Whether there is a visible track title.
+**It is a Next.js app on Cloudflare, and it plays through a hidden YouTube
+IFrame player.** The tell:
 
-This is worth 5 minutes and would let §3 and §5 be confirmed rather than
-inferred.
+```html
+<div class="pointer-events-none absolute h-px w-px overflow-hidden opacity-0">
+  <div></div>
+</div>
+```
+
+A 1×1px, `opacity-0` container holding an empty `<div>` — precisely the mount
+point `YT.Player` replaces with an iframe. Corroborating:
+
+- Cover art is self-hosted at `/covers/<id>.jpg`, where `<id>` is an 11-char
+  **YouTube video ID** (`N0jnLZxYwYc`).
+- The artist line reads **"Satrang Music Official"** — a YouTube *channel*
+  name, not a label or singer credit. The metadata comes from YouTube.
+- There is a working seek bar (`0:00 / 0:00`, `role="slider"`), which the
+  IFrame API supports via `getCurrentTime` / `getDuration` / `seekTo`.
+- No 200×200 player exists anywhere in the layout.
+
+### 8.1 What this means for our decisions
+
+- **Same audio source as ours** (§3 Option A). The route was right.
+- **Their player is hidden at 1×1**, which is a straight violation of the
+  IFrame API terms. Ours is visible at 80px — undersized (§12.2b) but present
+  and interactive. Our deviation is the much smaller one, and worth keeping.
+- **Ads are not being suppressed by any technique**, because none exists. The
+  likely reason their playback feels uninterrupted is *song selection*: a
+  channel like "Satrang Music Official" is a small unofficial uploader, and
+  unmonetised uploads serve no ads. Official label uploads (T-Series, Saregama,
+  Tips) are monetised and always will. This is exactly the trade described in
+  §3 — fewer ads, at the cost of link rot and takedown risk, since unofficial
+  copies are the ones that disappear.
+- Worth noting a hidden player makes ads *worse* when they do fire: the
+  visitor hears an ad with no reachable "Skip" button.
+
+### 8.2 Worth borrowing (all legitimate)
+
+- Outbound **Spotify** and **YT Music** playlist links, top-right. Two anchors,
+  no licensing implications, and a graceful way to hand the playlist over.
+- Album art that **spins while playing** (`animation-play-state` toggled between
+  `running` and `paused`) — our disc is static and already circular.
+- A **seek bar** and a **previous-track** button; we have neither.
 
 ---
 
