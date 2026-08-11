@@ -210,15 +210,15 @@ body{
 
 .player{
   display:flex; align-items:center;
-  gap:28px;                  /* art ↔ title, and title ↔ controls */
   padding:10px;
   padding-right:clamp(14px, 3vw, 22px);
   border:1px solid rgba(255,255,255,.5);
-  border-radius:20px;
+  border-radius:999px;       /* pill — the ends are semicircles of the disc */
   background:rgba(20,16,12,.60);
   backdrop-filter:blur(14px);
   box-shadow:0 18px 52px rgba(0,0,0,.52);
-  width:min(580px, 94vw);
+  width:auto;                /* shrink-wraps the fixed title width below */
+  max-width:94vw;
 }
 
 .player__disc{
@@ -247,9 +247,16 @@ body{
   display:block;
 }
 
-/* Sits between disc and controls, vertically centred against the art. */
+/* Sits between disc and controls, vertically centred against the art.
+   Fixed width rather than flex-grow: it sets how much title is visible and
+   keeps the pill from stretching wider than it needs to. Asymmetric margins
+   give 28px from the art and a tighter 16px to the controls. */
 .player__meta{
-  min-width:0; flex:1 1 auto;
+  flex:0 1 auto;
+  width:200px;
+  min-width:0;
+  margin-left:28px;
+  margin-right:16px;
   text-align:left;
 }
 
@@ -364,7 +371,8 @@ body{
    broken. Trimming the gaps and controls here brings it back to ~120px. To
    force a strict 28px everywhere, delete this block. */
 @media (max-width:640px){
-  .player{ gap:16px; padding-right:12px; }
+  .player{ width:100%; padding-right:12px; }
+  .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }
   .player__controls{ gap:.3rem; }
   .btn{ width:34px; height:34px; }
   .gate{ padding-top:calc(var(--pad) + 7rem); }
