@@ -656,6 +656,55 @@ hosts. Not worth the risk for a filename.
 
 ---
 
+## 14. Traffic ambience
+
+A looping traffic/engine bed under the music at 30%.
+
+### 14.1 Why not a second YouTube player
+
+The obvious route — a second `YT.Player` on an ambience video, held at 30% —
+**cannot meet its own requirement on iOS**:
+
+- **`setVolume()` is a no-op on iOS.** Volume there is hardware-only. The
+  ambience would play at exactly the same level as the songs on every iPhone.
+  30% is the whole point of the feature, and it is unachievable this way.
+- **Concurrent playback is unreliable on iOS**, where starting a second stream
+  has historically paused the first. The failure mode is the *music* stopping.
+- It compounds the §12.2b deviation: a second player would also need to be
+  visible under the IFrame API terms, and an ambience track has nowhere
+  sensible to be seen.
+
+Desktop would be fine. Phones are most of the traffic for a shared link, so
+"works on desktop" isn't good enough here.
+
+### 14.2 What was built instead
+
+A local audio file through the same Web Audio path as the horn (§13), where a
+`GainNode` gives a true 30% on every platform including iOS.
+
+- Loops gaplessly via `AudioBufferSourceNode.loop` for the whole session.
+- **Follows the music:** fades to 30% while it plays, to silence when paused,
+  muted, or the tab is hidden — over a ~2s ramp, so it breathes rather than
+  clicking on and off. Mute silences the whole cabin, not just the songs.
+- Horn and ambience share one `AudioContext` (`AudioBus`); browsers cap how
+  many can exist and there's no reason for two.
+- **Absent file degrades to silence.** `ambience.mp3` is not in the repo yet;
+  the fetch 404s, the module returns early, and nothing else is affected.
+  Verified.
+
+### 14.3 What is still needed
+
+An `ambience.mp3` in the repo root. It cannot be taken from a YouTube link —
+extracting audio from YouTube is against their terms, and the licensing problem
+from §3 returns in full. Sources that are clean: freesound.org (CC0 city
+traffic and bus-interior recordings), or any royalty-free library.
+
+Pick something **seamlessly loopable** and **unremarkable** — no sirens, no
+sudden events, nothing with a recognisable rhythm. It should be noticed only
+when it stops. 30–60s of steady traffic is plenty; it loops.
+
+---
+
 ## 11. Rough plan
 
 1. Scaffold `index.html` / `style.css` / `app.js`, landing gate, no audio.

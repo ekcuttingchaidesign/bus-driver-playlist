@@ -206,15 +206,47 @@
   };
 
   /* ------------------------------------------------------------------ *
-   * Horn                                                               *
+   * Sound effects                                                      *
    *                                                                    *
-   * Sounds at a random interval, never less than MIN_GAP_MS apart.     *
-   *                                                                    *
-   * Web Audio rather than an <audio> element, for one reason: iOS      *
+   * Web Audio rather than <audio> elements, for one reason: iOS        *
    * ignores HTMLAudioElement.volume, so an <audio> horn would blast at *
-   * full device volume on every iPhone. A GainNode works everywhere.   *
+   * full device volume on every iPhone and ambience could never sit at *
+   * 30%. A GainNode is respected everywhere.                           *
    * ------------------------------------------------------------------ */
 
+  // One shared context. Browsers cap how many can exist, and the effects
+  // below have no reason to own separate ones.
+  const AudioBus = {
+    ctx: null,
+
+    // Must run inside a click: a context created outside a user gesture
+    // starts suspended and never makes a sound.
+    init() {
+      if (this.ctx) return this.ctx;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;                  // no Web Audio: effects stay silent
+      try {
+        this.ctx = new AC();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+      } catch {
+        this.ctx = null;
+      }
+      return this.ctx;
+    },
+
+    async load(url) {
+      if (!this.ctx) return null;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;            // not added yet: no error, no sound
+        return await this.ctx.decodeAudioData(await res.arrayBuffer());
+      } catch {
+        return null;
+      }
+    },
+  };
+
+  // Sounds at a random interval, never less than MIN_GAP_MS apart.
   const Horn = {
     SRC:        'bus-horn.mp3',
     MIN_GAP_MS: 40000,      // the floor asked for; real gaps land above it
@@ -222,44 +254,25 @@
     VOLUME:     0.42,       // under the music, not over it
     MAX_LEN_S:  null,       // set a number of seconds to trim the clip
 
-    ctx: null,
     buffer: null,
     timer: null,
     armed: false,
 
-    // Must be called from inside a click handler: an AudioContext created
-    // outside a user gesture starts suspended and stays silent.
-    arm() {
-      if (this.armed) return;
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;                       // no Web Audio: no horn, no error
+    async arm() {
+      if (this.armed || !AudioBus.ctx) return;
       this.armed = true;
-      try {
-        this.ctx = new AC();
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-      } catch {
-        this.armed = false;
-        return;
-      }
-      this._load().then(() => this._schedule());
-    },
-
-    async _load() {
-      try {
-        const res = await fetch(this.SRC);
-        this.buffer = await this.ctx.decodeAudioData(await res.arrayBuffer());
-      } catch {
-        this.buffer = null;                  // missing or undecodable: stay quiet
-      }
+      this.buffer = await AudioBus.load(this.SRC);
+      if (this.buffer) this._schedule();
     },
 
     blast() {
       if (!this.buffer) return;
-      const src = this.ctx.createBufferSource();
+      const ctx = AudioBus.ctx;
+      const src = ctx.createBufferSource();
       src.buffer = this.buffer;
-      const gain = this.ctx.createGain();
+      const gain = ctx.createGain();
       gain.gain.value = this.VOLUME;
-      src.connect(gain).connect(this.ctx.destination);
+      src.connect(gain).connect(ctx.destination);
       this.MAX_LEN_S ? src.start(0, 0, this.MAX_LEN_S) : src.start();
     },
 
@@ -274,6 +287,58 @@
         this._schedule();
       }, wait);
     },
+  };
+
+  // Traffic/engine bed, looping under the music. Follows the music: fades in
+  // while it plays, out when paused, muted, or the tab is hidden.
+  //
+  // Deliberately a local file rather than a second YouTube player. YouTube's
+  // setVolume is a no-op on iOS, so a YouTube ambience track could not be held
+  // at 30% there — it would play as loud as the songs. See spec.md §14.
+  const Ambience = {
+    SRC:    'ambience.mp3',
+    VOLUME: 0.30,
+    FADE_S: 2.0,
+
+    gain: null,
+    armed: false,
+
+    async arm() {
+      if (this.armed || !AudioBus.ctx) return;
+      this.armed = true;
+
+      const buffer = await AudioBus.load(this.SRC);
+      if (!buffer) return;                   // file not added yet: stays silent
+
+      const ctx = AudioBus.ctx;
+      this.gain = ctx.createGain();
+      this.gain.gain.value = 0;              // faded in by sync()
+      this.gain.connect(ctx.destination);
+
+      const src = ctx.createBufferSource();
+      src.buffer = buffer;
+      src.loop = true;                       // gapless, runs for the session
+      src.connect(this.gain);
+      src.start();
+
+      this.sync();
+    },
+
+    sync() {
+      if (!this.gain) return;
+      const ctx = AudioBus.ctx;
+      const target =
+        (!document.hidden && !Player.muted && Player.isPlaying()) ? this.VOLUME : 0;
+      this.gain.gain.cancelScheduledValues(ctx.currentTime);
+      this.gain.gain.setTargetAtTime(target, ctx.currentTime, this.FADE_S / 3);
+    },
+  };
+
+  // Called from the play button and from player state changes.
+  const armEffects = () => {
+    if (!AudioBus.init()) return;
+    Horn.arm();
+    Ambience.arm();
   };
 
   /* ------------------------------------------------------------------ *
@@ -423,6 +488,8 @@
         el.playBtn.classList.add('is-paused');
         el.playBtn.setAttribute('aria-label', T.play);
       }
+
+      Ambience.sync();   // the bed follows whatever the music is doing
     },
 
     // 101/150 = embedding disabled by the owner, common on label uploads.
@@ -498,6 +565,7 @@
       this.muted ? this.yt.mute() : this.yt.unMute();
       el.muteBtn.classList.toggle('is-muted', this.muted);
       el.muteBtn.setAttribute('aria-label', this.muted ? T.unmute : T.mute);
+      Ambience.sync();   // mute silences the whole cabin, not just the songs
     },
   };
 
@@ -533,13 +601,14 @@
   })();
 
   // Horn.arm() must run inside the click itself — see the note on its arm().
-  el.playBtn.addEventListener('click', () => { Horn.arm(); Player.toggle(); });
+  el.playBtn.addEventListener('click', () => { armEffects(); Player.toggle(); });
   el.nextBtn.addEventListener('click', () => Player.next());
+  document.addEventListener('visibilitychange', () => Ambience.sync());
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
 
   document.addEventListener('keydown', (e) => {
     if (e.target.matches('input, textarea')) return;
-    if (e.code === 'Space') { e.preventDefault(); Horn.arm(); Player.toggle(); }
+    if (e.code === 'Space') { e.preventDefault(); armEffects(); Player.toggle(); }
     if (e.code === 'ArrowRight') Player.next();
     if (e.key.toLowerCase() === 'm') Player.toggleMute();
   });

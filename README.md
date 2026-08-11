@@ -49,6 +49,20 @@ It uses Web Audio rather than an `<audio>` element because iOS ignores
 `HTMLAudioElement.volume` — an `<audio>` horn would blast at full device volume
 on every iPhone. A `GainNode` behaves everywhere.
 
+## Traffic ambience — file needed
+
+A looping traffic bed at 30% under the music, fading in and out with playback.
+The code is in place; **drop an `ambience.mp3` in the repo root and it starts
+working.** Until then it 404s and stays silent, harming nothing.
+
+Pick something seamlessly loopable and unremarkable — no sirens, no sudden
+events, nothing with a recognisable rhythm. 30–60s is plenty; it loops. Source
+it royalty-free (freesound.org has CC0 traffic recordings); it can't be pulled
+from a YouTube link.
+
+Tuning lives on the `Ambience` object in `app.js` — `VOLUME` (0.30) and
+`FADE_S` (2.0).
+
 UI text is Hindi throughout. Every string lives in the `T` object at the top of
 `app.js` — change wording there, not in the markup.
 
