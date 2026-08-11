@@ -1,10 +1,15 @@
 # Bus Driver Playlist — Specification
 
-**Status:** v1.0 — blocking questions answered, ready to implement. No code written yet.
+**Status:** v1.1 — images received & compressed; live counter added. One open
+decision (§10.3). No site code written yet.
 **Date:** 2026-08-11
 
 **Decisions locked:** audio via YouTube IFrame API (§3, Option A) · images are
-AI-generated and owned by us (§4.3) · deploying as a public shareable link (§6b).
+AI-generated and owned by us (§4.3) · deploying as a public shareable link (§6b)
+· 4 images compressed 7.9 MB → 541 KB (§4.4).
+
+**Open:** which backend for the live passenger counter (§10.3) · portrait crop
+handling (§4.4b).
 
 ---
 
@@ -51,6 +56,7 @@ markup, styling, image assets, or track list. Two reasons:
 | R7 | Minimal controls: play/pause, next, volume/mute. |
 | R8 | Current track title visible somewhere unobtrusive. |
 | R9 | Works on mobile (this will mostly be opened on phones from a shared link). |
+| R10 | Live occupancy counter — *"34 passengers here"* — showing how many people are on the site right now. See §10. |
 
 ### 2.2 Should have
 
@@ -63,7 +69,9 @@ markup, styling, image assets, or track list. Two reasons:
 
 ### 2.3 Explicit non-goals
 
-- No accounts, no backend, no database, no analytics beyond nothing.
+- No accounts, no database, no analytics beyond nothing.
+- ~~No backend.~~ **Superseded by R10** — a truthful live counter cannot be
+  built from static files alone. See §10.
 - No search, no user-submitted songs, no comments.
 - No build step, no framework. Plain HTML/CSS/JS is enough and stays deployable
   to GitHub Pages forever with zero maintenance.
@@ -175,13 +183,69 @@ publicity-rights question that AI generation does not wash out. Generic bus
 interiors, highways, dashboards and roadside scenes are entirely clear. Worth a
 30-second look at the four before launch, then forget about it.
 
-### 4.4 Performance budget
+### 4.4 Performance budget — MET
 
-- 4 images, each ≤ 300KB, WebP with JPEG fallback, sized for ~2x of a phone
-  screen (roughly 1600px on the long edge). Total image payload under ~1.2MB.
+Source images were 4 × 1920×1080 totalling **7.9 MB** (two PNG, two JPEG) —
+about 6.5× over budget. Compressed to WebP (q80) + progressive JPEG fallback at
+1920px and 1280px:
+
+| Set | Payload |
+|---|---|
+| Desktop, WebP (1920) | **541 KB** |
+| Mobile, WebP (1280) | **326 KB** |
+| Desktop, JPEG fallback | 1047 KB |
+
+93% reduction, comfortably inside the 1.2 MB budget. Quality verified by PSNR
+against the originals: 34.4–37.8 dB across the four, above the threshold where
+differences become visible. Flat vector-style illustration is the ideal case for
+WebP — large areas of uniform colour, no film grain to preserve.
+
+- Serve via `<picture>`: WebP first, JPEG fallback, `srcset` switching to the
+  1280px set below 800px viewport width.
 - All 4 preloaded during the landing screen, before the first fade. A fade that
   stutters because image 2 is still downloading looks broken.
-- Total page weight excluding audio: target under 1.5MB.
+- Total page weight excluding audio: target under 1.5MB. Currently on track.
+- Uncompressed originals removed from the working tree; they remain in git
+  history on `main` if a re-encode is ever needed.
+
+### 4.4b The portrait-crop problem — needs a decision
+
+All 4 images are **16:9 landscape**, and the composition uses the full width:
+in the driver's-cabin image the road sign sits far left and the driver far
+right. A portrait phone at `object-fit: cover` shows roughly the middle third —
+which throws away most of what makes each illustration work. Most traffic will
+be portrait phones.
+
+Three ways out:
+
+1. **Horizontal Ken Burns pan on portrait** *(recommended)*. Rather than fight
+   the crop, use it: slowly pan across the wide image during its 10 seconds,
+   revealing the composition like a camera move. This solves the crop *and* the
+   §4.6 loop-monotony problem with the same mechanism, needs no new assets, and
+   looks deliberate.
+2. **Letterbox** (`object-fit: contain`) over a blurred backdrop. Shows the whole
+   frame, but wastes vertical space and reads as a slideshow rather than a place.
+3. **Portrait variants** — 4 more generated images cropped/extended to 9:16.
+   Best result, most work, and risks the two sets feeling inconsistent.
+
+### 4.4c Palette continuity
+
+The four images do not share a palette. 01 and 02 are warm gold/teal interiors;
+03 is bright blue-and-orange; 04 is cool blue/pink. Cross-fading between
+distant palettes goes muddy at the 50% mark. Mitigations: order them to keep
+adjacent pairs close (current order 01→02→03→04 does this reasonably, with
+04→01 the one hard jump), and let the shared grain/vignette/warmth overlay from
+§2.2 sit above all four — a common top layer pulls disparate images into one
+world.
+
+### 4.4d Tone check — your call, not a blocker
+
+Images 03 and 04 depict a passenger being sick and a scuffle breaking out.
+They're funny and true to the format, but they're a sharp tonal turn from the
+warm nostalgia of 01 and 02, and each one holds the full screen for 10 seconds.
+Worth a deliberate decision: keep all four for the comedy, or lead with the two
+warm ones and treat the other two as punchlines deeper into the rotation.
+Flagging it because it's easy to not notice until it's live.
 
 ### 4.5 Accessibility
 
@@ -215,11 +279,17 @@ Static site. No build. Deployable to GitHub Pages as-is.
 ```
 index.html          — markup, all of it
 style.css           — layers, fades, grain, responsive
-app.js              — slideshow timer + player controller + playlist logic
+app.js              — slideshow timer + player controller + playlist + counter
 playlist.json       — [{ title, film, year, videoId }]
 images/
-  01.webp … 04.webp
+  01.webp  02.webp  03.webp  04.webp          (1920px)
+  01-1280.webp … 04-1280.webp                 (mobile)
+  01.jpg … 04.jpg, 01-1280.jpg … 04-1280.jpg  (fallback)
+worker/             — live counter service, deployed separately (§10)
 ```
+
+Image order is fixed as: 01 driver's cabin · 02 aisle with conductor ·
+03 crowded bus · 04 the scuffle.
 
 ### 5.1 Visual layers (bottom → top)
 
@@ -317,10 +387,15 @@ no build step, no running costs, nothing to maintain between deploys.
 
 Not decisions — just things only you can hand over:
 
-- **A1.** The 4 image files. Steps 1–2 of §9 can proceed with placeholders, but
-  the visual tuning (fade duration, Ken Burns direction, scrim strength) can't
-  be finished without the real ones.
-- **A2.** The song list — see Q5 below.
+- ~~**A1.** The 4 image files.~~ → **Received and compressed.** See §4.4.
+- **A2.** The curated song list. Deferred by you; a single placeholder track is
+  wired up meanwhile — YouTube ID `0pWsCiBvLOk`. Because `playlist.json` is
+  decoupled from the code, swapping in the real list later is a data edit with
+  no code change.
+  - *Unverified:* this sandbox cannot reach YouTube, so the video's title and —
+    more importantly — whether its owner permits embedding (errors 101/150, see
+    §5.4) could not be confirmed. Needs a 10-second check in a browser, or it
+    may simply skip itself on load.
 
 ## 7b. Open questions — non-blocking
 
@@ -350,7 +425,77 @@ inferred.
 
 ---
 
-## 9. Rough plan (once §7 is answered)
+## 10. Live passenger counter (R10)
+
+*"34 passengers here."* Great fit for the concept — it turns a solo page into a
+shared bus. But it is the one feature that cannot be built from static files,
+so it deserves its own decision.
+
+### 10.1 Why this breaks the architecture
+
+Counting concurrent visitors requires somewhere shared to count. GitHub Pages
+serves static files and nothing else. So the site stays static, and the counter
+talks to a small service hosted elsewhere (a `workers.dev` subdomain or similar)
+over CORS. The site is still deployable to Pages; there is simply now a second,
+tiny thing to deploy.
+
+### 10.2 The scale question is the real one
+
+saloon.wtf did roughly 1.6M views off a single post. If this lands even
+slightly, the counter is the only component with a hard concurrency ceiling —
+and it fails exactly at the moment the most people are watching, which is the
+worst possible failure mode. Free tiers of the managed realtime services cap
+around **200 concurrent connections**. A viral spike passes that in seconds.
+
+### 10.3 Options
+
+**A. Cloudflare Worker + Durable Object, heartbeat polling** *(recommended)*
+- Client POSTs a heartbeat with a random ephemeral session ID every ~15s. The
+  Durable Object keeps a sliding 45s window and returns the live count.
+- No persistent sockets, so it scales far past a WebSocket approach at the same
+  cost, and survives a viral spike.
+- Freshness ~15s, which is indistinguishable from live for this purpose.
+- Requires the Workers **paid plan, $5/month** (Durable Objects aren't on the
+  free tier). That's the entire running cost of the project.
+
+**B. Managed realtime presence (Supabase / Ably / Pusher), client-only**
+- Least code — presence is a built-in primitive; no service to write or deploy.
+- Free tier ≈ 200 concurrent connections, then it degrades or cuts off. Fine
+  for friends-and-family, wrong bet if this is meant to be shared publicly.
+
+**C. Simulated counter**
+- A plausible-looking number generated client-side, no backend, no cost.
+- It is a lie told to every visitor, and a trivially discoverable one — the
+  number is right there in the JS. For a site whose entire appeal is shared
+  nostalgia, getting caught faking the "we're all here together" number is a
+  genuinely bad trade. **Not recommended.** Noted only because it is the
+  obvious cheap route and should be rejected knowingly rather than by omission.
+
+### 10.4 Behaviour details
+
+- Copy: *"N passengers here"*, singular-aware — *"1 passenger here"*, and
+  *"just you on this bus"* at N=1 is a nicer read than the bare number.
+- Count the current visitor, so it never shows 0 while someone is looking at it.
+- **If the counter service is unreachable, hide the element entirely.** Never
+  show 0, never show a stale number, never fall back to a fake one.
+- Ephemeral random session IDs only. No cookies, no fingerprinting, no IP
+  storage, nothing that outlives the visit — keeps the whole feature out of
+  consent-banner territory.
+- Poll on a timer; pause heartbeats when the tab is hidden (reuses the
+  `visibilitychange` handling already specified in §5.2) so backgrounded tabs
+  don't inflate the count or burn quota.
+
+### 10.5 Added file
+
+```
+worker/            — counter service (Cloudflare Worker + Durable Object)
+  index.js
+  wrangler.toml
+```
+
+---
+
+## 11. Rough plan
 
 1. Scaffold `index.html` / `style.css` / `app.js`, landing gate, no audio.
 2. Image layer: 4 slots, preload, 10s cross-fade, Ken Burns, reduced-motion.
