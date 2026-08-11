@@ -1,7 +1,10 @@
 # Bus Driver Playlist — Specification
 
-**Status:** Draft v0.1 — requirements & constraints. No code written yet.
+**Status:** v1.0 — blocking questions answered, ready to implement. No code written yet.
 **Date:** 2026-08-11
+
+**Decisions locked:** audio via YouTube IFrame API (§3, Option A) · images are
+AI-generated and owned by us (§4.3) · deploying as a public shareable link (§6b).
 
 ---
 
@@ -125,15 +128,19 @@ playlist becomes a list of YouTube video IDs.
   THIS song."* Generic 90s-flavoured instrumentals get none of that.
 - Viable as a fallback layer if the primary source fails, not as the main plan.
 
-### Recommendation
+### DECISION: Option A — YouTube IFrame API
 
-**Option A (YouTube IFrame API) for the public site.** It's the only route that
-is both legal and shareable. Design around the visible-player constraint rather
-than fighting it — a small player docked bottom-right, styled to read as a
-cassette deck or dashboard stereo, is arguably better than hiding it.
+Chosen. It is the only route that is both legal and shareable, and the site is
+going public (§6b). We design around the visible-player constraint rather than
+fighting it: a small player docked in a corner, styled to read as a dashboard
+stereo or cassette deck, becomes part of the aesthetic instead of a compromise.
 
-Keep Option B available behind a flag for local development, so the site can be
-worked on offline without YouTube in the loop.
+Option B stays available behind a local dev flag so the visuals can be built
+offline without YouTube in the loop.
+
+**Consequences accepted:** ads may play between tracks; the player stays
+visible; the playlist will need occasional checking as videos get removed or
+region-blocked.
 
 ---
 
@@ -157,11 +164,16 @@ images time to preload. It is a feature, not a workaround.
   otherwise crop the image.
 - Data: full-bleed images on 4G. Budget hard, see §4.4.
 
-### 4.3 Image rights
+### 4.3 Image rights — RESOLVED
 
-The 4 images have the same legal shape as the music. Fine if you shot them,
-made them, or generated them. **Not** fine if they're film stills, press
-photos, or someone's Instagram. Needs confirming before launch — see §8, Q2.
+The 4 images are AI-generated (ChatGPT). No third-party rights problem; they
+ship with the site.
+
+One residual caution, cheap to check: if any image closely depicts a recognisable
+real actor or reproduces a specific film frame, that reintroduces a likeness /
+publicity-rights question that AI generation does not wash out. Generic bus
+interiors, highways, dashboards and roadside scenes are entirely clear. Worth a
+30-second look at the four before launch, then forget about it.
 
 ### 4.4 Performance budget
 
@@ -233,7 +245,39 @@ plus an `onEnded` callback — with two implementations behind it: YouTube IFram
 and plain `<audio>`. This is the one piece of indirection worth building,
 because it means the §3 decision can be revisited without a rewrite.
 
-### 5.4 Playlist logic
+### 5.4 YouTube backend — implementation notes
+
+Now that Option A is locked, the specifics that will actually bite:
+
+- Load `https://www.youtube.com/iframe_api`; it calls the global
+  `onYouTubeIframeAPIReady` when ready. Construct the player only after that.
+- Use `host: 'https://www.youtube-nocookie.com'` — no tracking cookies until
+  playback actually starts.
+- `playerVars`: `playsinline: 1` (mandatory for iOS, otherwise iOS hijacks the
+  screen with its native fullscreen player), `rel: 0`, `modestbranding: 1`,
+  and `origin` set to our deployed URL.
+- **Create the player once and call `loadVideoById()` to change tracks — never
+  tear down and rebuild the iframe.** Rebuilding loses the user-gesture context,
+  and several mobile browsers will then refuse to play until the user taps
+  again. This single detail is the difference between "works on my phone" and
+  a playlist that stalls after track one.
+- `onStateChange` → `YT.PlayerState.ENDED` drives auto-advance.
+- `onError` must skip, not stall. Codes worth handling: `100` (video gone or
+  private), `101` / `150` (owner disabled embedding — common on label uploads,
+  expect to lose a few), `2` (bad ID), `5` (player error). All four → drop from
+  this session's queue, advance, and don't retry.
+- **Player size:** YouTube's IFrame API docs specify a 200×200px minimum. Budget
+  for that in the layout; it is roughly a cassette-deck-sized dock, which suits
+  the design.
+- **iOS volume:** `setVolume()` is a no-op on iOS — volume is hardware-only
+  there. Mute/unmute *does* work. So the control should be a mute toggle, with a
+  volume slider shown only where it functions, rather than a slider that
+  silently does nothing on half the traffic.
+- Because the playlist is video IDs, verifying links is a recurring maintenance
+  chore. Keep `playlist.json` slightly over-stocked so attrition doesn't thin it
+  to nothing.
+
+### 5.5 Playlist logic
 
 - Fisher-Yates shuffle on load; reshuffle when exhausted, never repeating the
   last-played track as the first of the new cycle.
@@ -256,16 +300,27 @@ Landing  →  tap  →  Playing
 
 ---
 
-## 7. Open questions — blocking
+## 6b. Deployment
 
-Answers to Q1 change the architecture; answers to Q2–Q3 change what can ship.
+Public, shareable link. Static files → GitHub Pages off this repo. No backend,
+no build step, no running costs, nothing to maintain between deploys.
 
-- **Q1. Audio source?** Option A (YouTube, public + legal), or Option B local
-  (better UX, personal use only, not shareable)? *Recommended: A.*
-- **Q2. Where did the 4 images come from?** Shot / made / AI-generated by you,
-  or found online? Determines whether the site is publishable.
-- **Q3. Public or personal?** A link you post publicly, or something you open on
-  your own machine? This changes how much §3 matters.
+---
+
+## 7. Open questions — blocking: ALL ANSWERED
+
+- ~~**Q1. Audio source?**~~ → **YouTube IFrame API.** See §3, §5.5.
+- ~~**Q2. Image provenance?**~~ → **AI-generated, ours.** See §4.3.
+- ~~**Q3. Public or personal?**~~ → **Public shareable link.** See §6b.
+
+### 7a. Assets still needed before implementation completes
+
+Not decisions — just things only you can hand over:
+
+- **A1.** The 4 image files. Steps 1–2 of §9 can proceed with placeholders, but
+  the visual tuning (fade duration, Ken Burns direction, scrim strength) can't
+  be finished without the real ones.
+- **A2.** The song list — see Q5 below.
 
 ## 7b. Open questions — non-blocking
 
@@ -304,4 +359,6 @@ inferred.
 5. Mobile pass — real device, `100dvh`, tap targets, data weight.
 6. Deploy to GitHub Pages.
 
-Steps 1–2 do not depend on Q1 and can start as soon as the images exist.
+Nothing in this list is blocked on a decision any more. Steps 1–2 can start
+immediately using placeholder images; steps 3–4 are fully specified by §5.4.
+Step 5 needs the real images (A1) and the track list (A2) to be meaningful.
