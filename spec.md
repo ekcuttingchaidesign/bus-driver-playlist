@@ -474,13 +474,27 @@ point `YT.Player` replaces with an iframe. Corroborating:
 - Worth noting a hidden player makes ads *worse* when they do fire: the
   visitor hears an ad with no reachable "Skip" button.
 
-### 8.2 Worth borrowing (all legitimate)
+### 8.2 Borrowed — all three built
 
-- Outbound **Spotify** and **YT Music** playlist links, top-right. Two anchors,
-  no licensing implications, and a graceful way to hand the playlist over.
-- Album art that **spins while playing** (`animation-play-state` toggled between
-  `running` and `paused`) — our disc is static and already circular.
-- A **seek bar** and a **previous-track** button; we have neither.
+**Outbound Spotify / YT Music links.** Rendered from `playlist.json → links`, so
+URLs are data rather than markup. Blank or absent URLs render nothing and the
+element stays hidden — no broken pills while the playlists don't exist yet.
+On phones the right-aligned position lands on top of the wrapped masthead
+title, so below 640px they move to their own centred row above it.
+
+**Spinning record — adapted, not copied.** Theirs rotates a static cover image
+because their player is hidden. Ours *is* the player, and rotating a playing
+video would be disorienting as well as obscuring the thing YouTube requires us
+to show. So a ring spins **behind and slightly proud of** the disc while the
+video stays upright: same read, no cost. Driven by `.player.is-playing`, and
+stopped under `prefers-reduced-motion`.
+
+**Seek bar and previous track.** `getCurrentTime` / `getDuration` polled at
+250ms, `seekTo` on release. Pointer capture means a drag that leaves the bar
+still tracks. Keyboard: the bar is focusable and arrows nudge ±5s, with the
+global arrow shortcuts skipped while it has focus so they don't change track
+instead. `previousVideo()` in playlist mode, and `Playlist.prev()` wrapping
+backwards in track mode.
 
 ---
 

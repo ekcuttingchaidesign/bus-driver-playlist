@@ -26,6 +26,8 @@
     riders:    (n) => `<b>${n}</b> यात्री सवार हैं`,
     pause:     'रोकें',
     play:      'चलाएँ',
+    spotify:   'Spotify',
+    ytMusic:   'YT Music',
     mute:      'आवाज़ बंद करें',
     unmute:    'आवाज़ चालू करें',
   };
@@ -35,6 +37,14 @@
   const el = {
     hud:      $('hud'),
     title:    $('trackTitle'),
+    player:   document.querySelector('.player'),
+    links:    $('links'),
+    seek:     $('seek'),
+    seekFill: $('seekFill'),
+    seekKnob: $('seekKnob'),
+    tCur:     $('tCur'),
+    tDur:     $('tDur'),
+    prevBtn:  $('prevBtn'),
     playBtn:  $('playBtn'),
     nextBtn:  $('nextBtn'),
     muteBtn:  $('muteBtn'),
@@ -143,6 +153,119 @@
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => Title.refresh(), 180);
   });
+
+  /* ------------------------------------------------------------------ *
+   * Listen-elsewhere links                                             *
+   * Rendered from playlist.json so URLs stay data, not markup. Absent  *
+   * or blank URLs render nothing at all.                               *
+   * ------------------------------------------------------------------ */
+
+  const ICON = {
+    // Brand marks, used only to link to those services.
+    spotify: 'M12 0a12 12 0 100 24 12 12 0 000-24zm5.5 17.3a.75.75 0 01-1.03.25c-2.83-1.73-6.38-2.12-10.58-1.16a.75.75 0 11-.33-1.46c4.59-1.05 8.52-.6 11.69 1.34a.75.75 0 01.25 1.03zm1.47-3.27a.94.94 0 01-1.29.31c-3.24-1.99-8.17-2.57-12-1.4a.94.94 0 01-.54-1.8c4.38-1.33 9.82-.68 13.52 1.6a.94.94 0 01.31 1.29zm.13-3.4C15.22 8.34 8.9 8.13 5.2 9.25a1.12 1.12 0 11-.65-2.15c4.25-1.29 11.23-1.04 15.66 1.59a1.12 1.12 0 11-1.14 1.94z',
+    ytMusic: 'M12 0a12 12 0 100 24 12 12 0 000-24zm0 19.1a7.1 7.1 0 110-14.2 7.1 7.1 0 010 14.2zm0-13.33a6.23 6.23 0 100 12.46 6.23 6.23 0 000-12.46zM9.68 15.54V8.46L15.82 12l-6.14 3.54z',
+  };
+
+  const Links = {
+    render(links) {
+      const items = [
+        { url: links && links.spotify, label: T.spotify, icon: ICON.spotify },
+        { url: links && links.ytMusic, label: T.ytMusic, icon: ICON.ytMusic },
+      ].filter((i) => typeof i.url === 'string' && i.url.trim());
+
+      if (!items.length) return;          // nothing configured: stay hidden
+
+      el.links.innerHTML = items.map((i) => `
+        <a href="${i.url}" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="${i.icon}"/></svg>
+          <span>${i.label}</span>
+        </a>`).join('');
+      el.links.hidden = false;
+    },
+  };
+
+  /* ------------------------------------------------------------------ *
+   * Seek bar                                                           *
+   * ------------------------------------------------------------------ */
+
+  const mmss = (s) => {
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    return `${m}:${String(Math.floor(s - m * 60)).padStart(2, '0')}`;
+  };
+
+  const Progress = {
+    POLL_MS: 250,
+    dragging: false,
+
+    start() {
+      setInterval(() => this.tick(), this.POLL_MS);
+
+      const frac = (e) => {
+        const r = el.seek.getBoundingClientRect();
+        return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      };
+
+      el.seek.addEventListener('pointerdown', (e) => {
+        if (!this._duration()) return;
+        this.dragging = true;
+        el.seek.classList.add('is-dragging');
+        el.seek.setPointerCapture(e.pointerId);
+        this.paint(frac(e));
+      });
+
+      el.seek.addEventListener('pointermove', (e) => {
+        if (this.dragging) this.paint(frac(e));
+      });
+
+      const commit = (e) => {
+        if (!this.dragging) return;
+        this.dragging = false;
+        el.seek.classList.remove('is-dragging');
+        const d = this._duration();
+        if (d) Player.seek(frac(e) * d);
+      };
+      el.seek.addEventListener('pointerup', commit);
+      el.seek.addEventListener('pointercancel', () => {
+        this.dragging = false;
+        el.seek.classList.remove('is-dragging');
+      });
+
+      // Arrow keys nudge by 5s while the bar has focus. The global handler
+      // skips arrows in that case so they don't also change track.
+      el.seek.addEventListener('keydown', (e) => {
+        const d = this._duration();
+        if (!d) return;
+        let delta = 0;
+        if (e.key === 'ArrowRight') delta = 5;
+        if (e.key === 'ArrowLeft') delta = -5;
+        if (!delta) return;
+        e.preventDefault();
+        Player.seek(Math.min(d, Math.max(0, Player.currentTime() + delta)));
+      });
+    },
+
+    _duration() {
+      const d = Player.duration();
+      return isFinite(d) && d > 0 ? d : 0;
+    },
+
+    tick() {
+      if (this.dragging) return;
+      const d = this._duration();
+      const c = Player.currentTime();
+      this.paint(d ? c / d : 0, c, d);
+    },
+
+    paint(f, cur, dur) {
+      const pct = `${(f * 100).toFixed(2)}%`;
+      el.seekFill.style.width = pct;
+      el.seekKnob.style.left = pct;
+      el.seek.setAttribute('aria-valuenow', Math.round(f * 100));
+      if (cur !== undefined) el.tCur.textContent = mmss(cur);
+      if (dur !== undefined) el.tDur.textContent = mmss(dur);
+    },
+  };
 
   /* ------------------------------------------------------------------ *
    * Passenger counter                                                  *
@@ -383,6 +506,7 @@
         const data = await res.json();
         this.playlistId = data.playlistId || null;
         this.queue = this._shuffle((data.tracks || []).filter((t) => t && t.videoId));
+        Links.render(data.links);
       } catch {
         this.playlistId = null;
         this.queue = [];
@@ -418,6 +542,11 @@
       return this.current();
     },
 
+    prev() {
+      this.pos = this.pos > 0 ? this.pos - 1 : this.queue.length - 1;
+      return this.current();
+    },
+
     // A video that can't be embedded is gone for this session.
     drop() {
       this.queue.splice(this.pos, 1);
@@ -450,7 +579,7 @@
       const s = document.createElement('script');
       s.src = 'https://www.youtube.com/iframe_api';
       s.async = true;
-      s.onerror = () => this._fail('Could not reach YouTube.');
+      s.onerror = () => this._fail(T.noPlayer);
       document.head.appendChild(s);
     },
 
@@ -515,6 +644,9 @@
         el.playBtn.classList.add('is-paused');
         el.playBtn.setAttribute('aria-label', T.play);
       }
+
+      // Drives the spinning ring.
+      el.player.classList.toggle('is-playing', e.data === YT.PlayerState.PLAYING);
 
       Ambience.sync();   // the bed follows whatever the music is doing
     },
@@ -584,6 +716,25 @@
       this.play(Playlist.next());
     },
 
+    prev() {
+      if (!this.yt) return;
+      this._started = true;
+      if (Playlist.isPlaylist()) { this.yt.previousVideo(); return; }
+      this.play(Playlist.prev());
+    },
+
+    currentTime() {
+      try { return this.yt ? (this.yt.getCurrentTime() || 0) : 0; } catch { return 0; }
+    },
+
+    duration() {
+      try { return this.yt ? (this.yt.getDuration() || 0) : 0; } catch { return 0; }
+    },
+
+    seek(seconds) {
+      try { if (this.yt) this.yt.seekTo(seconds, true); } catch { /* not ready */ }
+    },
+
     // setVolume is a no-op on iOS (hardware-only), but mute/unmute works,
     // so mute is the control we expose.
     toggleMute() {
@@ -635,12 +786,16 @@
   // Horn.arm() must run inside the click itself — see the note on its arm().
   el.playBtn.addEventListener('click', () => { armEffects(); Player.toggle(); });
   el.nextBtn.addEventListener('click', () => Player.next());
+  el.prevBtn.addEventListener('click', () => Player.prev());
   document.addEventListener('visibilitychange', () => Ambience.sync());
+  Progress.start();
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
 
   document.addEventListener('keydown', (e) => {
-    if (e.target.matches('input, textarea')) return;
+    // Arrows belong to the seek bar while it has focus.
+    if (e.target.matches('input, textarea') || e.target === el.seek) return;
     if (e.code === 'Space') { e.preventDefault(); armEffects(); Player.toggle(); }
+    if (e.code === 'ArrowLeft') Player.prev();
     if (e.code === 'ArrowRight') Player.next();
     if (e.key.toLowerCase() === 'm') Player.toggleMute();
   });

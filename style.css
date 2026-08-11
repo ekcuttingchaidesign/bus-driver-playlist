@@ -178,8 +178,36 @@ body{
   max-width:94vw;
 }
 
-.player__disc{
+/* Record ring. Sits *behind* and slightly proud of the disc, so it never
+   covers the player. Spinning the disc itself would rotate a playing video —
+   disorienting, and it would obscure the player we are required to show. */
+.player__art{
   position:relative; flex:0 0 auto;
+  width:var(--disc); height:var(--disc);
+  display:grid; place-items:center;
+}
+
+.player__ring{
+  position:absolute;
+  width:calc(var(--disc) + 13px);
+  height:calc(var(--disc) + 13px);
+  border-radius:50%;
+  background:
+    conic-gradient(from 0deg,
+      rgba(232,163,61,.85) 0deg 14deg,
+      rgba(244,230,205,.16) 14deg 120deg,
+      rgba(244,230,205,.30) 120deg 240deg,
+      rgba(244,230,205,.16) 240deg 360deg);
+  animation:spin 7s linear infinite;
+  animation-play-state:paused;      /* runs only while the music plays */
+  pointer-events:none;
+}
+.player.is-playing .player__ring{ animation-play-state:running; }
+
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+.player__disc{
+  position:relative; z-index:1; flex:0 0 auto;
   width:var(--disc); height:var(--disc);
   border-radius:50%;
   overflow:hidden;
@@ -277,9 +305,78 @@ body{
 }
 
 .player__controls{
-  display:flex; gap:.35rem;
+  display:flex; gap:.35rem; align-items:center;
   flex:0 0 auto;              /* spacing comes from the .player gap */
 }
+
+/* seek bar -------------------------------------------------------- */
+
+.seek{
+  position:relative;
+  margin-top:.5rem;
+  height:12px;
+  cursor:pointer;
+  touch-action:none;          /* let us drag without the page scrolling */
+}
+.seek:focus-visible{ outline:2px solid var(--amber); outline-offset:3px; border-radius:4px; }
+
+.seek__track{
+  position:absolute; inset-inline:0; top:50%;
+  height:3px; transform:translateY(-50%);
+  border-radius:999px;
+  background:rgba(244,230,205,.22);
+  overflow:hidden;
+}
+.seek__fill{
+  height:100%; width:0%;
+  border-radius:999px;
+  background:var(--amber);
+}
+.seek__knob{
+  position:absolute; top:50%; left:0;
+  width:10px; height:10px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:var(--cream);
+  box-shadow:0 1px 4px rgba(0,0,0,.6);
+  opacity:0;
+  transition:opacity 160ms;
+}
+.seek:hover .seek__knob,
+.seek:focus-visible .seek__knob,
+.seek.is-dragging .seek__knob{ opacity:1; }
+
+.seek__time{
+  margin:.3rem 0 0;
+  font-size:.64rem;
+  font-variant-numeric:tabular-nums;
+  color:rgba(244,230,205,.5);
+}
+
+/* listen-elsewhere links ------------------------------------------ */
+
+.links{
+  position:fixed; z-index:31;
+  top:calc(var(--pad) + .4rem); right:var(--pad);
+  display:flex; gap:.4rem;
+}
+.links[hidden]{ display:none; }
+
+.links a{
+  display:inline-flex; align-items:center; gap:.42rem;
+  padding:.42rem .8rem;
+  border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;
+  background:rgba(20,16,12,.42);
+  backdrop-filter:blur(8px);
+  color:#fff; text-decoration:none;
+  font-size:.76rem; font-weight:600;
+  text-shadow:0 1px 3px rgba(0,0,0,.5);
+  transition:background 180ms, border-color 180ms, transform 180ms;
+}
+.links a:hover{ background:rgba(232,163,61,.22); border-color:rgba(232,163,61,.6); }
+.links a:active{ transform:scale(.96); }
+.links svg{ width:15px; height:15px; fill:currentColor; flex:0 0 auto; }
 
 .btn{
   width:36px; height:36px;
@@ -294,6 +391,8 @@ body{
 .btn:hover{ background:rgba(232,163,61,.18); border-color:rgba(232,163,61,.5); }
 .btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
 .btn svg{ width:16px; height:16px; fill:currentColor; }
+.btn--sm{ width:32px; height:32px; }
+.btn--sm svg{ width:14px; height:14px; }
 
 /* icon swapping */
 .ico-play, .ico-muted{ display:none; }
@@ -346,6 +445,12 @@ body{
    broken. Trimming the gaps and controls here brings it back to ~120px. To
    force a strict 28px everywhere, delete this block. */
 @media (max-width:640px){
+  /* Right-aligned pills land on top of the centred title once it wraps, so
+     they get their own centred row and the masthead starts below them. */
+  .links{ left:0; right:0; justify-content:center; top:calc(var(--pad) + .1rem); }
+  .links a{ padding:.36rem .7rem; font-size:.72rem; }
+  .masthead{ padding-top:calc(var(--pad) + 3.1rem); }
+
   .player{ width:100%; padding-right:12px; }
   .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }
   .player__controls{ gap:.3rem; }
@@ -363,6 +468,7 @@ body{
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }
   .passengers::before{ animation:none; }
+  .player.is-playing .player__ring{ animation:none; }
   /* No scrolling. The mask still fades the overflow, so it reads as
      "continues" rather than being chopped off. */
   .player__title.is-scrolling .title__track{ animation:none; }

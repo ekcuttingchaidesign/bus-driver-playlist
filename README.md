@@ -82,6 +82,28 @@ compression recipe.
 UI text is Hindi throughout. Every string lives in the `T` object at the top of
 `app.js` — change wording there, not in the markup.
 
+## Listen-elsewhere links
+
+Pills appear top-right (centred above the title on phones) when you fill these
+in. Leave either blank and it simply doesn't render:
+
+```json
+"links": {
+  "spotify": "https://open.spotify.com/playlist/...",
+  "ytMusic": "https://music.youtube.com/playlist?list=..."
+}
+```
+
+## Player controls
+
+Previous / play / next, a mute toggle, and a seek bar. The bar is draggable,
+focusable, and arrow keys nudge ±5s while it has focus. Space toggles play;
+left/right arrows change track when the bar isn't focused.
+
+The record ring spins while music plays. It sits *behind* the disc rather than
+rotating it, because the disc is the live YouTube player — spinning the video
+would be disorienting and would obscure a player we're required to keep visible.
+
 ## Adding songs
 
 Edit `playlist.json`. Two modes:

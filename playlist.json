@@ -1,5 +1,12 @@
 {
   "_comment": "When playlistId is set, YouTube owns ordering and auto-advance, and skips unplayable entries itself. The tracks array is only used when playlistId is absent.",
   "playlistId": "PLVeY0XJJSxJMh2rXK2Taby1v23kj3P5_N",
+
+  "_links": "Optional. Fill either in and a pill appears top-right; leave blank and nothing renders.",
+  "links": {
+    "spotify": "",
+    "ytMusic": ""
+  },
+
   "tracks": []
 }
