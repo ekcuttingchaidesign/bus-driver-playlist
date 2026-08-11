@@ -29,7 +29,12 @@
   --dwell:    10s;    /* must match DWELL_MS in app.js */
   --fade:     1200ms; /* must match FADE_MS  in app.js */
 
-  --disc:     200px;  /* YouTube IFrame API minimum player size */
+  /* Album art. The iframe is *built* at --disc-native (YouTube's documented
+     200px minimum, so their player renders normally) and then visually scaled
+     down to --disc. Keep --disc-scale equal to --disc / --disc-native. */
+  --disc:        80px;
+  --disc-native: 200px;
+  --disc-scale:  .4;
 
   --pad:      clamp(14px, 3.2vw, 34px);
   --safe-b:   env(safe-area-inset-bottom, 0px);
@@ -205,15 +210,15 @@ body{
 
 .player{
   display:flex; align-items:center;
-  gap:clamp(16px, 3vw, 28px);
-  padding:12px;
-  padding-right:clamp(22px, 4vw, 38px);
-  border:1px solid rgba(244,230,205,.16);
-  border-radius:999px;                       /* pill */
+  gap:clamp(12px, 2.4vw, 18px);
+  padding:10px;
+  padding-right:clamp(14px, 3vw, 22px);
+  border:1px solid rgba(255,255,255,.5);
+  border-radius:20px;
   background:rgba(20,16,12,.60);
   backdrop-filter:blur(14px);
   box-shadow:0 18px 52px rgba(0,0,0,.52);
-  max-width:min(640px, 94vw);
+  width:min(460px, 94vw);
 }
 
 .player__disc{
@@ -223,19 +228,21 @@ body{
   overflow:hidden;
   background:#000;
   box-shadow:
-    inset 0 0 0 5px rgba(20,16,12,.92),
-    inset 0 0 0 6px rgba(232,163,61,.38),
-    0 8px 26px rgba(0,0,0,.55);
+    inset 0 0 0 3px rgba(20,16,12,.92),
+    inset 0 0 0 4px rgba(232,163,61,.38),
+    0 6px 18px rgba(0,0,0,.55);
 }
 
-/* The API swaps #ytplayer for an iframe of the same id. Sized 16:9 and
-   centred so the video fills the circle instead of letterboxing inside it. */
+/* The API swaps #ytplayer for an iframe of the same id. Built 16:9 at the
+   native height so YouTube renders a normal player, then scaled down and
+   centred so the video fills the small circle rather than letterboxing. */
 .player__disc #ytplayer,
 .player__disc iframe{
   position:absolute; top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  width:calc(var(--disc) * 16 / 9);
-  height:var(--disc);
+  width:calc(var(--disc-native) * 16 / 9);
+  height:var(--disc-native);
+  transform:translate(-50%,-50%) scale(var(--disc-scale));
+  transform-origin:center;
   border:0;
   display:block;
 }
@@ -243,24 +250,24 @@ body{
 .player__meta{ min-width:0; flex:1 1 auto; }
 
 .player__label{
-  margin:0 0 .2rem;
-  font-size:.72rem; font-weight:600;
+  margin:0 0 .12rem;
+  font-size:.66rem; font-weight:600;
   letter-spacing:.02em;
   color:var(--amber);
 }
 
 .player__title{
-  margin:0 0 .75rem;
-  font-size:clamp(.92rem, 2.7vw, 1.06rem);
+  margin:0 0 .5rem;
+  font-size:clamp(.86rem, 2.5vw, .98rem);
   font-weight:600;
-  line-height:1.4;
+  line-height:1.35;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
-.player__controls{ display:flex; gap:.45rem; }
+.player__controls{ display:flex; gap:.35rem; }
 
 .btn{
-  width:44px; height:44px;
+  width:36px; height:36px;
   display:grid; place-items:center;
   border:1px solid rgba(244,230,205,.16);
   border-radius:50%;
@@ -271,7 +278,7 @@ body{
 }
 .btn:hover{ background:rgba(232,163,61,.18); border-color:rgba(232,163,61,.5); }
 .btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
-.btn svg{ width:19px; height:19px; fill:currentColor; }
+.btn svg{ width:16px; height:16px; fill:currentColor; }
 
 /* icon swapping */
 .ico-play, .ico-muted{ display:none; }
@@ -298,26 +305,16 @@ body{
 
 /* ---------- responsive ---------- */
 
+/* Mobile keeps the same horizontal rounded rectangle — the small disc means
+   there is no longer any need to stack it into a card. */
 @media (max-width:640px){
-  .player{
-    flex-direction:column;
-    border-radius:30px;                     /* rounded rectangle when stacked */
-    padding:16px;
-    text-align:center;
-    width:100%;
-  }
-  .player__meta{ width:100%; }
-  .player__title{ margin-bottom:.85rem; }
-  .player__controls{ justify-content:center; }
   .gate{ padding-top:calc(var(--pad) + 7rem); }
 }
 
-/* Short landscape: the masthead and a 200px disc don't both fit. */
 @media (max-height:560px) and (orientation:landscape){
   .masthead__sub{ display:none; }
   .gate{ padding-top:calc(var(--pad) + 4.5rem); }
   .gate__blurb{ display:none; }
-  .player{ transform:scale(.8); transform-origin:bottom center; }
 }
 
 /* ---------- accessibility ---------- */

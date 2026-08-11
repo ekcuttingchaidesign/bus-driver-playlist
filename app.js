@@ -7,10 +7,11 @@
   const DWELL_MS = 10000;   // keep in sync with --dwell in style.css
   const FADE_MS  = 1200;    // keep in sync with --fade  in style.css
 
-  // The player is clipped to a 200px circle, so it is built 16:9 at that
-  // height: the video fills the disc rather than letterboxing inside it.
-  // 200 is also the IFrame API's minimum player dimension — do not go below.
-  const DISC_PX  = 200;
+  // The iframe is built 16:9 at YouTube's documented 200px minimum so their
+  // player renders normally, then CSS scales it down into the small circular
+  // disc. Building it small instead would risk YouTube's own too-small-player
+  // handling. Must match --disc-native in style.css.
+  const DISC_NATIVE = 200;
 
   const T = {
     engine:    'इंजन चालू हो रहा है…',
@@ -241,8 +242,8 @@
 
     create(videoId) {
       this.yt = new YT.Player('ytplayer', {
-        width: String(Math.round(DISC_PX * 16 / 9)),
-        height: String(DISC_PX),
+        width: String(Math.round(DISC_NATIVE * 16 / 9)),
+        height: String(DISC_NATIVE),
         videoId,
         host: 'https://www.youtube-nocookie.com',
         playerVars: {

@@ -56,10 +56,11 @@ slightly over-stocked.
 - Images are centre-cropped on portrait phones, so wide compositions lose their
   edges. 9:16 variants are planned; drop them in at `.slide img` in `style.css`.
 - **The circular album art is the YouTube player itself**, clipped to a circle —
-  not artwork with the player hidden behind it. YouTube's terms require the
-  player stay visible at 200×200 or larger, which is what fixes the disc at
-  200px and makes the pill as chunky as it is. Shrinking the circle means
-  breaking those terms. See spec.md §12.2.
+  not artwork with the player hidden behind it. The iframe is built at 356×200
+  so YouTube renders normally, then scaled to 0.4 for the 80px disc. That puts
+  the presented player below YouTube's documented 200×200 minimum: a knowing
+  deviation, low practical risk, and reversible in one line
+  (`--disc: 200px; --disc-scale: 1`). See spec.md §12.2b.
 - The playlist currently holds one placeholder track pending curation.
 
 ## Deploying

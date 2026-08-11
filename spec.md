@@ -529,16 +529,30 @@ whole reason for choosing YouTube — at risk.
 video fills the disc instead of letterboxing. The player is fully visible,
 plays, and is interactive. Nothing is faked and nothing is hidden.
 
-Two consequences worth knowing:
-
-- **The disc is 200px because it cannot be smaller.** A daintier circle would
-  require dropping below the API minimum, or showing fake art alongside a
-  separate real player. This is why the pill is chunky, especially on mobile
-  where it occupies roughly the top half of the card.
 - **Circular clipping crops the video's sides.** Mild grey area: the player is
-  visible and unobscured, but not showing its full frame. Materially safer than
-  hiding it. If you want zero ambiguity, the alternative is an uncropped 16:9
-  player in a rounded rectangle — less pretty, entirely unarguable.
+  visible and unobscured, but not showing its full frame.
+
+### 12.2b Disc reduced to 80px — a knowing deviation
+
+The 200px disc made the player dominate the screen, so it is now **80px** (a
+60% reduction), which puts the *presented* player below YouTube's documented
+200×200 minimum. Recorded plainly because it is a real deviation, taken
+deliberately for the design:
+
+- **What is preserved:** the player is still the visible, interactive,
+  real YouTube embed. It is not hidden, and no fake artwork stands in for it.
+  Undersized is a materially smaller deviation than concealed.
+- **How it is built:** the iframe is instantiated at 356×200 — a normal size,
+  so YouTube's own player renders as it expects — and then scaled to 0.4 in
+  CSS. Constructing it at 142×80 instead would invite YouTube's
+  too-small-player handling, which can refuse to render controls or the video.
+  The scale factor and both sizes are variables in `style.css`, kept in step
+  with `DISC_NATIVE` in `app.js`.
+- **Practical risk:** low. Enforcement here is not automated and small embeds
+  are common across the web. The exposure is theoretical rather than likely,
+  but it is non-zero and it exists on the licensing path the whole project
+  depends on.
+- **Reverting is one line:** set `--disc: 200px` and `--disc-scale: 1`.
 
 ### 12.3 Layout
 
