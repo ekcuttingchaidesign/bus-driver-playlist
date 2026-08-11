@@ -21,7 +21,7 @@
 <div class="stage" aria-hidden="true">
   <div class="slides" id="slides">
 
-    <!-- Active from first paint so the artwork is behind the landing gate. -->
+    <!-- Active from first paint so artwork shows before anything else loads. -->
     <div class="slide is-active" data-slide="0">
       <picture>
         <source type="image/webp" srcset="images/01-1280.webp 1280w, images/01.webp 1920w" sizes="100vw">
@@ -65,23 +65,10 @@
   <p class="masthead__sub">आपका स्वागत करती है</p>
 </header>
 
-<!-- Landing gate. Required: browsers block audible autoplay without a gesture. -->
-<div class="gate" id="gate">
-  <div class="gate__inner">
-    <p class="gate__blurb">
-      हर लंबी दूरी की बस में, एक फटे हुए स्पीकर से बजने वाले
-      वही पुराने गाने।
-    </p>
-    <button class="gate__btn" id="boardBtn" type="button">
-      <span class="gate__btn-label">चलिए, बस में बैठिए</span>
-      <span class="gate__btn-sub">आवाज़ चालू कर लीजिए</span>
-    </button>
-    <p class="gate__note" id="gateNote" role="status"></p>
-  </div>
-</div>
-
-<!-- Playing HUD -->
-<div class="hud" id="hud" hidden>
+<!-- No entry gate: the play button click is itself the user gesture that
+     browsers require before audio may start. The player loads cued and
+     paused, and the first press starts it. -->
+<div class="hud" id="hud">
 
   <!-- The circular art IS the YouTube player, clipped to a circle. The
        IFrame API terms require the player stay visible at 200x200 or more,
@@ -97,7 +84,7 @@
     </div>
 
     <div class="player__controls">
-      <button class="btn" id="playBtn" type="button" aria-label="रोकें">
+      <button class="btn is-paused" id="playBtn" type="button" aria-label="चलाएँ">
         <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
         <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-play"><path d="M8 5l11 7-11 7z"/></svg>
       </button>

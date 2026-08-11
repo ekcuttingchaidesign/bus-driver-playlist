@@ -115,81 +115,38 @@ body{
 
 .masthead{
   position:fixed; z-index:30;
-  top:calc(var(--pad) + .3rem); left:0; right:0;
-  padding-inline:var(--pad);
+  top:0; left:0; right:0;
+  padding:calc(var(--pad) + .5rem) var(--pad) 3.4rem;
   text-align:center;
   pointer-events:none;
+
+  /* Fades out downward. The illustrations run bright behind the masthead
+     (sunlit windscreens, pale skies), and white text alone was fighting them. */
+  background:linear-gradient(180deg,
+    rgba(20,16,12,.80) 0%,
+    rgba(20,16,12,.62) 32%,
+    rgba(20,16,12,.30) 66%,
+    transparent 100%);
 }
 
 .masthead__title{
   margin:0;
   color:#fff;
   font-weight:800;
-  font-size:clamp(1.55rem, 5.6vw, 3.35rem);
-  line-height:1.24;
+  font-size:clamp(1.95rem, 7vw, 4.2rem);
+  line-height:1.2;
   letter-spacing:.005em;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 6px 34px rgba(0,0,0,.62);
   text-wrap:balance;
 }
 
 .masthead__sub{
-  margin:.45rem 0 0;
+  margin:.5rem 0 0;
   color:rgba(255,255,255,.9);
   font-weight:600;
-  font-size:clamp(.9rem, 2.7vw, 1.2rem);
+  font-size:clamp(.95rem, 3vw, 1.35rem);
   line-height:1.5;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 4px 22px rgba(0,0,0,.55);
-}
-
-/* ---------- landing gate ---------- */
-
-.gate{
-  position:fixed; inset:0; z-index:20;
-  display:grid; place-items:center;
-  padding:var(--pad);
-  padding-top:calc(var(--pad) + 8rem);   /* clear the masthead */
-  background:linear-gradient(180deg, rgba(20,16,12,.60), rgba(20,16,12,.86));
-  backdrop-filter:blur(2px);
-  transition:opacity 620ms ease, visibility 620ms;
-}
-.gate.is-gone{ opacity:0; visibility:hidden; pointer-events:none; }
-
-.gate__inner{ max-width:32rem; text-align:center; }
-
-.gate__blurb{
-  margin:0 auto 2.1rem;
-  max-width:26rem;
-  font-size:clamp(.96rem, 2.7vw, 1.1rem);
-  line-height:1.75;
-  color:var(--dim);
-  text-wrap:balance;
-}
-
-.gate__btn{
-  display:block; margin:0 auto;
-  padding:.95rem 2.1rem;
-  border:1px solid rgba(232,163,61,.55);
-  border-radius:999px;
-  background:rgba(232,163,61,.10);
-  color:var(--cream);
-  font-family:inherit; font-size:1rem;
-  cursor:pointer;
-  transition:background 220ms, border-color 220ms, transform 220ms;
-}
-.gate__btn:hover{ background:rgba(232,163,61,.20); border-color:var(--amber); }
-.gate__btn:active{ transform:translateY(1px); }
-.gate__btn[disabled]{ opacity:.5; cursor:progress; }
-
-.gate__btn-label{ display:block; font-size:1.05rem; font-weight:600; }
-.gate__btn-sub{
-  display:block; margin-top:.3rem;
-  font-size:.78rem; letter-spacing:.02em;
-  color:var(--amber);
-}
-
-.gate__note{
-  margin:1.2rem 0 0; min-height:1.2em;
-  font-size:.84rem; color:var(--dim);
 }
 
 /* ---------- playing HUD ---------- */
@@ -361,6 +318,24 @@ body{
 .passengers[hidden]{ display:none; }
 .passengers b{ color:var(--amber); font-weight:700; }
 
+/* Live indicator. */
+.passengers::before{
+  content:'';
+  display:inline-block;
+  width:7px; height:7px;
+  margin-right:.5rem;
+  border-radius:50%;
+  background:#4ade80;
+  box-shadow:0 0 0 3px rgba(74,222,128,.16);
+  vertical-align:.05em;
+  animation:pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse{
+  0%,100%{ opacity:1;   box-shadow:0 0 0 3px rgba(74,222,128,.16); }
+  50%    { opacity:.72; box-shadow:0 0 0 5px rgba(74,222,128,.06); }
+}
+
 /* ---------- responsive ---------- */
 
 /* Mobile keeps the same horizontal rounded rectangle — the small disc means
@@ -375,13 +350,11 @@ body{
   .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }
   .player__controls{ gap:.3rem; }
   .btn{ width:34px; height:34px; }
-  .gate{ padding-top:calc(var(--pad) + 7rem); }
 }
 
 @media (max-height:560px) and (orientation:landscape){
   .masthead__sub{ display:none; }
-  .gate{ padding-top:calc(var(--pad) + 4.5rem); }
-  .gate__blurb{ display:none; }
+  .masthead{ padding-bottom:2rem; }
 }
 
 /* ---------- accessibility ---------- */
@@ -389,7 +362,7 @@ body{
 @media (prefers-reduced-motion:reduce){
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }
-  .gate{ transition:none; }
+  .passengers::before{ animation:none; }
   /* No scrolling. The mask still fades the overflow, so it reads as
      "continues" rather than being chopped off. */
   .player__title.is-scrolling .title__track{ animation:none; }

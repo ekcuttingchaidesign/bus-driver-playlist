@@ -52,7 +52,7 @@ markup, styling, image assets, or track list. Two reasons:
 | R3 | Auto-advance to the next track when one ends. Playlist loops forever. |
 | R4 | Exactly 4 background images, full-bleed, cycling on a timer. |
 | R5 | Each image holds for **10s**, then cross-fades into the next. Loops 1→2→3→4→1. |
-| R6 | An entry gate ("tap to start") — required by browser autoplay policy, see §4.1. |
+| ~~R6~~ | ~~An entry gate ("tap to start")~~ — **withdrawn**, see §4.1. The play button supplies the gesture instead. |
 | R7 | Minimal controls: play/pause, next, volume/mute. |
 | R8 | Current track title visible somewhere unobtrusive. |
 | R9 | Works on mobile (this will mostly be opened on phones from a shared link). |
@@ -154,15 +154,23 @@ region-blocked.
 
 ## 4. Other constraints
 
-### 4.1 Autoplay is blocked — turn it into the front door
+### 4.1 Autoplay is blocked — the play button is the gesture
 
 Chrome, Safari and Firefox all block audible autoplay without a user gesture.
 There is no workaround and we should not want one.
 
-So the first paint is a landing screen — a still image, the title, and one
-prompt (`"Chalo"` / `"Board the bus"` / `"Tap to start"`). One tap starts audio
-and begins the slideshow. This satisfies the policy, sets the tone, and gives
-images time to preload. It is a feature, not a workaround.
+**Superseded:** this originally called for a landing gate ("tap to board") to
+collect that gesture. The gate is gone. A gate was only ever *one* way to get a
+click, and the play button is already a click — so the page now loads straight
+into the site with the player **cued and paused**, and the first press of play
+starts the audio. From then on `loadVideoById` carries that permission forward
+for the rest of the session, so track changes need no further interaction.
+
+R6 in §2.1 is therefore withdrawn.
+
+The one thing the gate did buy was a guaranteed head start on image preloading
+before the first cross-fade. The `<link rel="preload">` on slide 1, `eager`
+loading on the rest, and the 10s dwell before the first fade cover that.
 
 ### 4.2 Mobile realities
 

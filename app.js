@@ -17,7 +17,6 @@
   const MARQUEE_SPEED  = 42;   // px per second — comfortable reading pace
 
   const T = {
-    engine:    'इंजन चालू हो रहा है…',
     loading:   'लोड हो रहा है…',
     unknown:   'अज्ञात गाना',
     noPlayer:  'प्लेयर लोड नहीं हो सका। कनेक्शन जाँचकर दोबारा कोशिश कीजिए।',
@@ -34,9 +33,6 @@
   const $ = (id) => document.getElementById(id);
 
   const el = {
-    gate:     $('gate'),
-    gateNote: $('gateNote'),
-    boardBtn: $('boardBtn'),
     hud:      $('hud'),
     title:    $('trackTitle'),
     playBtn:  $('playBtn'),
@@ -57,8 +53,8 @@
 
     start() {
       if (!this.slides.length) return;
-      // Slide 0 is already active behind the gate; restart its drift so the
-      // journey begins from the top rather than mid-animation.
+      // Slide 0 is active from first paint; restart its drift so the journey
+      // begins from the top rather than mid-animation.
       this.slides[0].classList.add('is-active');
       this._restartDrift(this.slides[0]);
       this.resume();
@@ -308,7 +304,9 @@
           origin: window.location.origin,
         },
         events: {
-          onReady: (e) => { e.target.playVideo(); this._showTitle(); },
+          // Deliberately not playing here: there has been no user gesture yet,
+          // so the video sits cued until the play button is pressed.
+          onReady: () => this._showTitle(),
           onStateChange: (e) => this._onState(e),
           onError: (e) => this._onError(e),
         },
@@ -377,45 +375,40 @@
    * Boot                                                               *
    * ------------------------------------------------------------------ */
 
+  // The slideshow and counter don't depend on audio, so they start straight
+  // away rather than waiting on YouTube.
   Player.loadApi();
-  Playlist.load();
+  Slideshow.start();
+  Passengers.start();
 
-  el.boardBtn.addEventListener('click', async () => {
-    el.boardBtn.disabled = true;
-    el.gateNote.textContent = T.engine;
-
-    if (!Playlist.queue.length) await Playlist.load();
+  (async () => {
+    await Playlist.load();
 
     try {
       await Player.whenReady();
     } catch {
-      el.boardBtn.disabled = false;
-      el.gateNote.textContent = T.noPlayer;
+      Title.set(T.noPlayer);
       return;
     }
 
     const first = Playlist.current();
     if (!first) {
-      el.boardBtn.disabled = false;
-      el.gateNote.textContent = T.empty;
+      Title.set(T.empty);
       return;
     }
 
-    // Constructed inside the click handler so the gesture carries to playback.
+    // Built cued, not playing. The play button press supplies the user gesture
+    // browsers require before audio may start; from then on loadVideoById
+    // carries that permission forward for the rest of the session.
     Player.create(first.videoId);
-
-    el.gate.classList.add('is-gone');
-    el.hud.hidden = false;
-    Slideshow.start();
-    Passengers.start();
-  });
+  })();
 
   el.playBtn.addEventListener('click', () => Player.toggle());
   el.nextBtn.addEventListener('click', () => Player.play(Playlist.next()));
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
 
   document.addEventListener('keydown', (e) => {
-    if (el.hud.hidden || e.target.matches('input, textarea')) return;
+    if (e.target.matches('input, textarea')) return;
     if (e.code === 'Space') { e.preventDefault(); Player.toggle(); }
     if (e.code === 'ArrowRight') Player.play(Playlist.next());
     if (e.key.toLowerCase() === 'm') Player.toggleMute();
