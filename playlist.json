@@ -1,6 +1,5 @@
 {
-  "_comment": "Placeholder list. Real curation pending. 'title' is optional — when omitted the YouTube player's own video title is displayed at runtime.",
-  "tracks": [
-    { "videoId": "0pWsCiBvLOk" }
-  ]
+  "_comment": "When playlistId is set, YouTube owns ordering and auto-advance, and skips unplayable entries itself. The tracks array is only used when playlistId is absent.",
+  "playlistId": "PLVeY0XJJSxJMh2rXK2Taby1v23kj3P5_N",
+  "tracks": []
 }

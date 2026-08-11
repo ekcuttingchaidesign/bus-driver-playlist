@@ -34,8 +34,21 @@ UI text is Hindi throughout. Every string lives in the `T` object at the top of
 
 ## Adding songs
 
-Edit `playlist.json`. `title` is optional — leave it out and the player shows
-YouTube's own title for the video.
+Edit `playlist.json`. Two modes:
+
+**Playlist mode (current).** Point at a YouTube playlist and YouTube handles
+ordering, auto-advance and skipping unplayable entries:
+
+```json
+{ "playlistId": "PLVeY0XJJSxJMh2rXK2Taby1v23kj3P5_N" }
+```
+
+The playlist must be **public or unlisted** — a private one won't load in an
+embed, and the page will simply sit silent. Curate by editing the playlist on
+YouTube; no code change and no redeploy needed.
+
+**Track mode.** Drop `playlistId` and list videos yourself. `title` is optional
+— leave it out and the player shows YouTube's own title.
 
 ```json
 { "tracks": [ { "videoId": "0pWsCiBvLOk" } ] }

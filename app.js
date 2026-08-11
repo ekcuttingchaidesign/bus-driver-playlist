@@ -212,17 +212,24 @@
   const Playlist = {
     queue: [],
     pos: 0,
+    playlistId: null,
 
     async load() {
       try {
         const res = await fetch('playlist.json', { cache: 'no-cache' });
         const data = await res.json();
+        this.playlistId = data.playlistId || null;
         this.queue = this._shuffle((data.tracks || []).filter((t) => t && t.videoId));
       } catch {
+        this.playlistId = null;
         this.queue = [];
       }
-      return this.queue.length;
+      return this.playlistId ? 1 : this.queue.length;
     },
+
+    // In playlist mode YouTube handles ordering, advancing and skipping
+    // unplayable videos, so most of the logic below goes unused.
+    isPlaylist() { return !!this.playlistId; },
 
     _shuffle(a) {
       const out = a.slice();
@@ -269,6 +276,7 @@
     apiReady: false,
     _readyWaiters: [],
     muted: false,
+    _started: false,   // has playback been kicked off by a user gesture yet
 
     loadApi() {
       window.onYouTubeIframeAPIReady = () => {
@@ -291,30 +299,48 @@
       });
     },
 
-    create(videoId) {
-      this.yt = new YT.Player('ytplayer', {
+    create() {
+      const asPlaylist = Playlist.isPlaylist();
+
+      const playerVars = {
+        playsinline: 1,        // without this iOS hijacks the screen
+        rel: 0,
+        modestbranding: 1,
+        origin: window.location.origin,
+      };
+
+      if (asPlaylist) {
+        playerVars.listType = 'playlist';
+        playerVars.list = Playlist.playlistId;
+        playerVars.loop = 1;   // with a list, loop restarts the playlist
+      }
+
+      const opts = {
         width: String(Math.round(DISC_NATIVE * 16 / 9)),
         height: String(DISC_NATIVE),
-        videoId,
         host: 'https://www.youtube-nocookie.com',
-        playerVars: {
-          playsinline: 1,      // without this iOS hijacks the screen
-          rel: 0,
-          modestbranding: 1,
-          origin: window.location.origin,
-        },
+        playerVars,
         events: {
           // Deliberately not playing here: there has been no user gesture yet,
           // so the video sits cued until the play button is pressed.
-          onReady: () => this._showTitle(),
+          onReady: () => {
+            if (asPlaylist) { try { this.yt.setLoop(true); } catch { /* older API */ } }
+            this._showTitle();
+          },
           onStateChange: (e) => this._onState(e),
           onError: (e) => this._onError(e),
         },
-      });
+      };
+
+      if (!asPlaylist) opts.videoId = Playlist.current().videoId;
+
+      this.yt = new YT.Player('ytplayer', opts);
     },
 
     _onState(e) {
-      if (e.data === YT.PlayerState.ENDED) {
+      // In playlist mode YouTube advances by itself; calling next() here too
+      // would jump two songs at a time.
+      if (e.data === YT.PlayerState.ENDED && !Playlist.isPlaylist()) {
         this.play(Playlist.next());
       }
       if (e.data === YT.PlayerState.PLAYING) {
@@ -332,6 +358,10 @@
     // 100 = gone or private. 2 = bad id. 5 = player error. All are terminal
     // for that track, so drop it and move on rather than stalling in silence.
     _onError() {
+      if (Playlist.isPlaylist()) {
+        try { this.yt.nextVideo(); } catch { /* nothing further to try */ }
+        return;
+      }
       const left = Playlist.drop();
       if (!left) return this._fail(T.exhausted);
       this.play(Playlist.current());
@@ -340,7 +370,7 @@
     _showTitle() {
       let name = '';
       try { name = this.yt.getVideoData().title || ''; } catch { /* not ready */ }
-      const meta = Playlist.current();
+      const meta = Playlist.isPlaylist() ? null : Playlist.current();
       Title.set((meta && meta.title) || name || T.unknown);
     },
 
@@ -356,8 +386,32 @@
 
     toggle() {
       if (!this.yt) return;
-      const s = this.yt.getPlayerState();
-      s === YT.PlayerState.PLAYING ? this.yt.pauseVideo() : this.yt.playVideo();
+      if (this.yt.getPlayerState() === YT.PlayerState.PLAYING) {
+        this.yt.pauseVideo();
+        return;
+      }
+
+      // First press in playlist mode starts somewhere random, so repeat
+      // visits don't always open on the same song. setShuffle is unreliable,
+      // and this is the user gesture, so playVideoAt is safe here.
+      if (Playlist.isPlaylist() && !this._started) {
+        this._started = true;
+        const list = (typeof this.yt.getPlaylist === 'function' && this.yt.getPlaylist()) || [];
+        if (list.length > 1) {
+          this.yt.playVideoAt(Math.floor(Math.random() * list.length));
+          return;
+        }
+      }
+
+      this._started = true;
+      this.yt.playVideo();
+    },
+
+    next() {
+      if (!this.yt) return;
+      this._started = true;
+      if (Playlist.isPlaylist()) { this.yt.nextVideo(); return; }
+      this.play(Playlist.next());
     },
 
     // setVolume is a no-op on iOS (hardware-only), but mute/unmute works,
@@ -391,8 +445,7 @@
       return;
     }
 
-    const first = Playlist.current();
-    if (!first) {
+    if (!Playlist.isPlaylist() && !Playlist.current()) {
       Title.set(T.empty);
       return;
     }
@@ -400,17 +453,17 @@
     // Built cued, not playing. The play button press supplies the user gesture
     // browsers require before audio may start; from then on loadVideoById
     // carries that permission forward for the rest of the session.
-    Player.create(first.videoId);
+    Player.create();
   })();
 
   el.playBtn.addEventListener('click', () => Player.toggle());
-  el.nextBtn.addEventListener('click', () => Player.play(Playlist.next()));
+  el.nextBtn.addEventListener('click', () => Player.next());
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
 
   document.addEventListener('keydown', (e) => {
     if (e.target.matches('input, textarea')) return;
     if (e.code === 'Space') { e.preventDefault(); Player.toggle(); }
-    if (e.code === 'ArrowRight') Player.play(Playlist.next());
+    if (e.code === 'ArrowRight') Player.next();
     if (e.key.toLowerCase() === 'm') Player.toggleMute();
   });
 })();

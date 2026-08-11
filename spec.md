@@ -350,9 +350,30 @@ Now that Option A is locked, the specifics that will actually bite:
   there. Mute/unmute *does* work. So the control should be a mute toggle, with a
   volume slider shown only where it functions, rather than a slider that
   silently does nothing on half the traffic.
-- Because the playlist is video IDs, verifying links is a recurring maintenance
-  chore. Keep `playlist.json` slightly over-stocked so attrition doesn't thin it
-  to nothing.
+### 5.4b Playlist mode — now the default
+
+`playlist.json` carries a `playlistId` and the player is constructed with
+`listType: 'playlist'` + `loop: 1`. This is materially better than a hand-kept
+list of video IDs:
+
+- YouTube owns ordering, auto-advance and **skipping unplayable entries**, so
+  the 101/150 attrition problem above stops being ours to manage.
+- Curation happens on YouTube. Adding a song needs no commit and no redeploy.
+- Consequences in code: `onStateChange → ENDED` must *not* call our `next()`
+  (YouTube already advanced — doing both skips two songs), `next()` maps to
+  `nextVideo()`, and `onError` maps to `nextVideo()`.
+
+**Shuffle.** `setShuffle()` has a long history of not taking effect reliably, so
+it isn't trusted. Instead the first press of play jumps to a random index via
+`playVideoAt()` — that press *is* the user gesture, so starting playback there
+is allowed. Repeat visits open on a different song; after that it runs in
+playlist order and loops.
+
+**Requirement:** the playlist must be public or unlisted. A private playlist
+fails to load in an embed, and the failure is silent — the page looks fine and
+simply never plays.
+
+The track-list path is kept as a fallback for when `playlistId` is absent.
 
 ### 5.5 Playlist logic
 
