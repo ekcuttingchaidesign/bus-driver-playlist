@@ -7,6 +7,26 @@
   const DWELL_MS = 10000;   // keep in sync with --dwell in style.css
   const FADE_MS  = 1200;    // keep in sync with --fade  in style.css
 
+  // The player is clipped to a 200px circle, so it is built 16:9 at that
+  // height: the video fills the disc rather than letterboxing inside it.
+  // 200 is also the IFrame API's minimum player dimension — do not go below.
+  const DISC_PX  = 200;
+
+  const T = {
+    engine:    'इंजन चालू हो रहा है…',
+    loading:   'लोड हो रहा है…',
+    unknown:   'अज्ञात गाना',
+    noPlayer:  'प्लेयर लोड नहीं हो सका। कनेक्शन जाँचकर दोबारा कोशिश कीजिए।',
+    empty:     'गानों की सूची खाली है।',
+    exhausted: 'कोई और गाना नहीं बचा।',
+    alone:     'इस बस में सिर्फ़ आप',
+    riders:    (n) => `<b>${n}</b> यात्री सवार हैं`,
+    pause:     'रोकें',
+    play:      'चलाएँ',
+    mute:      'आवाज़ बंद करें',
+    unmute:    'आवाज़ चालू करें',
+  };
+
   const $ = (id) => document.getElementById(id);
 
   const el = {
@@ -116,9 +136,7 @@
 
     render(n) {
       el.passengers.hidden = false;
-      el.passengers.innerHTML = n === 1
-        ? 'just you on this bus'
-        : `<b>${n}</b> passengers here`;
+      el.passengers.innerHTML = n === 1 ? T.alone : T.riders(n);
     },
 
     async start() {
@@ -223,8 +241,8 @@
 
     create(videoId) {
       this.yt = new YT.Player('ytplayer', {
-        width: '200',
-        height: '200',
+        width: String(Math.round(DISC_PX * 16 / 9)),
+        height: String(DISC_PX),
         videoId,
         host: 'https://www.youtube-nocookie.com',
         playerVars: {
@@ -247,10 +265,12 @@
       }
       if (e.data === YT.PlayerState.PLAYING) {
         el.playBtn.classList.remove('is-paused');
+        el.playBtn.setAttribute('aria-label', T.pause);
         this._showTitle();
       }
       if (e.data === YT.PlayerState.PAUSED) {
         el.playBtn.classList.add('is-paused');
+        el.playBtn.setAttribute('aria-label', T.play);
       }
     },
 
@@ -259,7 +279,7 @@
     // for that track, so drop it and move on rather than stalling in silence.
     _onError() {
       const left = Playlist.drop();
-      if (!left) return this._fail('No playable songs left.');
+      if (!left) return this._fail(T.exhausted);
       this.play(Playlist.current());
     },
 
@@ -267,7 +287,7 @@
       let name = '';
       try { name = this.yt.getVideoData().title || ''; } catch { /* not ready */ }
       const meta = Playlist.current();
-      el.title.textContent = (meta && meta.title) || name || 'unknown track';
+      el.title.textContent = (meta && meta.title) || name || T.unknown;
     },
 
     _fail(msg) {
@@ -293,7 +313,7 @@
       this.muted = !this.muted;
       this.muted ? this.yt.mute() : this.yt.unMute();
       el.muteBtn.classList.toggle('is-muted', this.muted);
-      el.muteBtn.setAttribute('aria-label', this.muted ? 'Unmute' : 'Mute');
+      el.muteBtn.setAttribute('aria-label', this.muted ? T.unmute : T.mute);
     },
   };
 
@@ -306,7 +326,7 @@
 
   el.boardBtn.addEventListener('click', async () => {
     el.boardBtn.disabled = true;
-    el.gateNote.textContent = 'starting the engine…';
+    el.gateNote.textContent = T.engine;
 
     if (!Playlist.queue.length) await Playlist.load();
 
@@ -314,14 +334,14 @@
       await Player.whenReady();
     } catch {
       el.boardBtn.disabled = false;
-      el.gateNote.textContent = 'Could not load the player. Check your connection and try again.';
+      el.gateNote.textContent = T.noPlayer;
       return;
     }
 
     const first = Playlist.current();
     if (!first) {
       el.boardBtn.disabled = false;
-      el.gateNote.textContent = 'The playlist is empty.';
+      el.gateNote.textContent = T.empty;
       return;
     }
 

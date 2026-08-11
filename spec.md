@@ -336,9 +336,8 @@ Now that Option A is locked, the specifics that will actually bite:
   private), `101` / `150` (owner disabled embedding — common on label uploads,
   expect to lose a few), `2` (bad ID), `5` (player error). All four → drop from
   this session's queue, advance, and don't retry.
-- **Player size:** YouTube's IFrame API docs specify a 200×200px minimum. Budget
-  for that in the layout; it is roughly a cassette-deck-sized dock, which suits
-  the design.
+- **Player size:** YouTube's IFrame API docs specify a 200×200px minimum.
+  **This is what sets the size of the circular album art** — see §12.2.
 - **iOS volume:** `setVolume()` is a no-op on iOS — volume is hardware-only
   there. Mute/unmute *does* work. So the control should be a mute toggle, with a
   volume slider shown only where it functions, rather than a slider that
@@ -496,6 +495,58 @@ worker/            — counter service (Cloudflare Worker + Durable Object)
   index.js
   wrangler.toml
 ```
+
+---
+
+## 12. Design revision — Hindi masthead, centred pill player
+
+### 12.1 Copy is now Hindi throughout
+
+Masthead: **उत्तर प्रदेश परिवहन सेवा** (white, bold, 800 weight), with
+**आपका स्वागत करती है** beneath it. Every other string — controls, counter,
+errors, the boarding button — is Devanagari too, and `<html lang="hi">`.
+All UI text lives in the `T` object at the top of `app.js`, so wording changes
+never mean hunting through markup.
+
+**Font: Noto Sans Devanagari, self-hosted** (`fonts/`, OFL 1.1, redistribution
+permitted). Self-hosted rather than linked from Google Fonts because the
+masthead is the first thing painted — a third-party round-trip there is exactly
+where a webfont delay is most visible. The variable file covers every weight;
+`unicode-range` means the Latin subset only downloads if Latin text appears.
+146 KB total, of which browsers typically fetch only the 118 KB Devanagari file.
+System Hindi faces (Nirmala UI, Kohinoor Devanagari, Mangal) back it up.
+
+### 12.2 The circular art and the YouTube terms — resolved, with a caveat
+
+The brief was circular album art inside the player. Read literally that means
+hiding the YouTube iframe and showing artwork in its place, which is the one
+thing §3 Option A rules out: the IFrame API terms require the player stay
+visible and unobscured. Hiding it would put the site's licensing position — the
+whole reason for choosing YouTube — at risk.
+
+**Resolution: the circular art *is* the player.** The iframe is built 356×200
+(16:9 at the minimum legal height) and clipped by a 200px circular mask, so the
+video fills the disc instead of letterboxing. The player is fully visible,
+plays, and is interactive. Nothing is faked and nothing is hidden.
+
+Two consequences worth knowing:
+
+- **The disc is 200px because it cannot be smaller.** A daintier circle would
+  require dropping below the API minimum, or showing fake art alongside a
+  separate real player. This is why the pill is chunky, especially on mobile
+  where it occupies roughly the top half of the card.
+- **Circular clipping crops the video's sides.** Mild grey area: the player is
+  visible and unobscured, but not showing its full frame. Materially safer than
+  hiding it. If you want zero ambiguity, the alternative is an uncropped 16:9
+  player in a rounded rectangle — less pretty, entirely unarguable.
+
+### 12.3 Layout
+
+One centred player replaces the old split deck-and-dock. Pill (`border-radius:
+999px`) on desktop with the disc left and title/controls right; below 640px it
+stacks into a rounded rectangle, since a pill 200px tall reads as a mistake on a
+narrow screen. Masthead is fixed top-centre and persists across both the gate
+and playback. The passenger counter sits under the player.
 
 ---
 

@@ -1,17 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bus Driver Playlist</title>
-<meta name="description" content="The songs that played on every long-distance Indian bus. 90s Bollywood, on a loop, from the driver's cassette deck.">
+<title>उत्तर प्रदेश परिवहन सेवा</title>
+<meta name="description" content="लंबी दूरी की बसों में बजने वाले नब्बे के दशक के गाने।">
 <meta name="theme-color" content="#14100c">
 
-<meta property="og:title" content="Bus Driver Playlist">
-<meta property="og:description" content="The songs that played on every long-distance Indian bus.">
+<meta property="og:title" content="उत्तर प्रदेश परिवहन सेवा">
+<meta property="og:description" content="आपका स्वागत करती है।">
 <meta property="og:type" content="website">
 
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" as="font" type="font/woff2" href="fonts/noto-devanagari.woff2" crossorigin>
 <link rel="preload" as="image" href="images/01.webp" imagesrcset="images/01-1280.webp 1280w, images/01.webp 1920w" imagesizes="100vw">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -59,18 +60,21 @@
   <div class="vignette"></div>
 </div>
 
+<header class="masthead">
+  <h1 class="masthead__title">उत्तर प्रदेश परिवहन सेवा</h1>
+  <p class="masthead__sub">आपका स्वागत करती है</p>
+</header>
+
 <!-- Landing gate. Required: browsers block audible autoplay without a gesture. -->
 <div class="gate" id="gate">
   <div class="gate__inner">
-    <p class="gate__kicker">Uttar Pradesh Parivahan &middot; est. whenever</p>
-    <h1 class="gate__title">Bus Driver<br>Playlist</h1>
     <p class="gate__blurb">
-      The songs that played on every long&#8209;distance bus,
-      through one blown speaker, whether you liked it or not.
+      हर लंबी दूरी की बस में, एक फटे हुए स्पीकर से बजने वाले
+      वही पुराने गाने।
     </p>
     <button class="gate__btn" id="boardBtn" type="button">
-      <span class="gate__btn-label">Chalo &mdash; board the bus</span>
-      <span class="gate__btn-sub">turn your sound on</span>
+      <span class="gate__btn-label">चलिए, बस में बैठिए</span>
+      <span class="gate__btn-sub">आवाज़ चालू कर लीजिए</span>
     </button>
     <p class="gate__note" id="gateNote" role="status"></p>
   </div>
@@ -79,40 +83,35 @@
 <!-- Playing HUD -->
 <div class="hud" id="hud" hidden>
 
-  <div class="hud__top">
-    <p class="marquee" id="passengers" hidden></p>
-  </div>
+  <!-- The circular art IS the YouTube player, clipped to a circle. The
+       IFrame API terms require the player stay visible at 200x200 or more,
+       so it is the record rather than something hidden behind one. -->
+  <div class="player">
+    <div class="player__disc">
+      <div id="ytplayer"></div>
+    </div>
 
-  <div class="hud__bottom">
-    <div class="deck">
-      <div class="deck__screen">
-        <p class="deck__label">now playing</p>
-        <p class="deck__title" id="trackTitle" role="status" aria-live="polite">loading&hellip;</p>
-      </div>
+    <div class="player__meta">
+      <p class="player__label">अभी बज रहा है</p>
+      <p class="player__title" id="trackTitle" role="status" aria-live="polite">लोड हो रहा है…</p>
 
-      <div class="deck__controls">
-        <button class="btn" id="playBtn" type="button" aria-label="Pause">
+      <div class="player__controls">
+        <button class="btn" id="playBtn" type="button" aria-label="रोकें">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-pause"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-play"><path d="M8 5l11 7-11 7z"/></svg>
         </button>
-        <button class="btn" id="nextBtn" type="button" aria-label="Next song">
+        <button class="btn" id="nextBtn" type="button" aria-label="अगला गाना">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5l9 7-9 7zM16 5h3v14h-3z"/></svg>
         </button>
-        <button class="btn" id="muteBtn" type="button" aria-label="Mute">
+        <button class="btn" id="muteBtn" type="button" aria-label="आवाज़ बंद करें">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-loud"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
           <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-muted"><path d="M4 9v6h4l5 4V5L8 9H4zm11 1.4L16.6 12 15 13.6l1.1 1.1L17.7 13l1.6 1.6 1.1-1.1L18.8 12l1.6-1.6-1.1-1.1-1.6 1.6-1.6-1.6z"/></svg>
         </button>
       </div>
     </div>
-
-    <!-- YouTube player. Visible by design: the IFrame API terms require the
-         player be present and unobscured, so it is styled as the bus stereo
-         rather than hidden behind the artwork. -->
-    <div class="dock">
-      <div class="dock__frame"><div id="ytplayer"></div></div>
-      <p class="dock__caption">cassette deck</p>
-    </div>
   </div>
+
+  <p class="passengers" id="passengers" hidden></p>
 </div>
 
 <script src="app.js"></script>
