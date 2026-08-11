@@ -357,7 +357,16 @@
     }
   };
 
-  const WAKE_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
+  // Widest net the platform allows. mousemove is the valuable one on desktop:
+  // tested in Chromium, moving the mouse alone is enough to let resume()
+  // through, so the traffic starts before anyone clicks anything. Touch
+  // devices have no mousemove, so phones still wake on their first tap.
+  // Events that a browser declines to treat as activation cost nothing —
+  // all handlers detach as soon as the context is running.
+  const WAKE_EVENTS = [
+    'mousemove', 'pointermove', 'pointerdown', 'touchstart',
+    'keydown', 'wheel', 'scroll',
+  ];
 
   /* ------------------------------------------------------------------ *
    * Playlist                                                           *

@@ -695,15 +695,28 @@ No browser permits sound before the page has been interacted with, and no
 §4.1 and there is no way through it.
 
 What is done instead: the context is built and the loop **started** at page
-load, sitting suspended and silent, then resumed on the **first interaction of
-any kind** — `pointerdown`, `keydown`, `touchstart` or `wheel`, anywhere on the
-page. Not just the play button. In practice a visitor's first tap, click or
-scroll comes well before they reach for play, so the traffic is already running
-by the time they think about music.
+load, sitting suspended and silent, then resumed on the **first sign of life** —
+`mousemove`, `pointermove`, `pointerdown`, `touchstart`, `keydown`, `wheel` or
+`scroll`, anywhere on the page. Not just the play button.
 
-Verified in Chromium: `suspended` on load, `running` after a single neutral
-click away from any control. The wake listeners remove themselves once the
-context is running.
+**`mousemove` is the one that matters on desktop.** The HTML spec's list of
+activation-triggering events does not include it, so this was tested rather than
+assumed — on a bare page with no app code, Chromium stays `suspended` with no
+input at all, and `resume()` resolves to `running` after mouse movement alone,
+with no click. So on a desktop the traffic starts as the visitor's hand moves,
+before they touch anything.
+
+Two honest limits:
+
+- **Touch devices have no `mousemove`.** Phones wake on their first tap
+  instead — which for most visitors is the play button, so the ambience and the
+  music start together rather than the ambience arriving first.
+- Verified in **Chromium**. Safari and Firefox may take a stricter line, since
+  this leans on browser leniency rather than a guarantee in the spec. If they
+  refuse, the fallback is the ordinary tap or click, which always works.
+
+Events a browser declines to treat as activation cost nothing. All handlers
+detach the moment the context reaches `running`.
 - Horn and ambience share one `AudioContext` (`AudioBus`); browsers cap how
   many can exist and there's no reason for two.
 - **Absent file degrades to silence.** `ambience.mp3` is not in the repo yet;

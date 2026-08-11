@@ -59,11 +59,14 @@ A 40s loop at **50% volume**, running independently of the music — it starts a
 soon as the page is woken and keeps going whether or not a song is playing. Only
 mute or a hidden tab silence it.
 
-It can't literally sound before any interaction: no browser allows audio until
-the page has been touched. So the loop is started at page load in a suspended
-context and resumed on the **first interaction of any kind** — a click, tap,
-keypress or scroll anywhere, not just the play button — which in practice
-happens well before anyone reaches for play.
+It can't sound before any interaction — no browser allows audio until the page
+has been touched. So the loop starts at page load in a suspended context and
+resumes on the **first sign of life**: mouse movement, a tap, a keypress or a
+scroll, anywhere on the page.
+
+On desktop **moving the mouse is enough** — no click needed (tested in
+Chromium; not guaranteed in Safari or Firefox, which fall back to a click).
+Touch devices have no mouse movement, so phones wake on their first tap.
 
 Compressed from the 12.4 MB source to **313 KB** (40s, mono, 32 kHz, 64 kbps) —
 it loops, so nine minutes of audio bought nothing. The loop point is crossfaded
