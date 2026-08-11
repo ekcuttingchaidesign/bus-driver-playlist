@@ -1,12 +1,187 @@
 {
-  "_comment": "When playlistId is set, YouTube owns ordering and auto-advance, and skips unplayable entries itself. The tracks array is only used when playlistId is absent.",
-  "playlistId": "PLVeY0XJJSxJMh2rXK2Taby1v23kj3P5_N",
-
-  "_links": "Optional. Fill either in and a pill appears top-right; leave blank and nothing renders.",
-  "links": {
-    "spotify": "",
-    "ytMusic": ""
-  },
-
-  "tracks": []
+  "name": "Bollywood Bus Driver / Roadside Retro Playlist",
+  "description": "30-song Bollywood roadside/cassette-era playlist with direct YouTube video links.",
+  "song_count": 30,
+  "songs": [
+    {
+      "title": "Dheere Dheere Se Meri Zindagi Mein Aana",
+      "film": "Aashiqui",
+      "year": 1990,
+      "youtube_url": "https://www.youtube.com/watch?v=KeyfUuXPOcY"
+    },
+    {
+      "title": "Mera Dil Bhi Kitna Pagal Hai",
+      "film": "Saajan",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=FsNc7I33w60"
+    },
+    {
+      "title": "Chhupana Bhi Nahin Aata",
+      "film": "Baazigar",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=fg9G1dacXjk"
+    },
+    {
+      "title": "Mujhse Mohabbat Ka",
+      "film": "Hum Hain Rahi Pyar Ke",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=N0jnLZxYwYc"
+    },
+    {
+      "title": "Tere Dar Par Sanam",
+      "film": "Phir Teri Kahani Yaad Aayee",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=05o4kCUY2Ys"
+    },
+    {
+      "title": "Tumsa Koi Pyaara",
+      "film": "Khuddar",
+      "year": 1994,
+      "youtube_url": "https://www.youtube.com/watch?v=3NWMK2MRqIk"
+    },
+    {
+      "title": "Main Duniya Bhula Doonga",
+      "film": "Aashiqui",
+      "year": 1990,
+      "youtube_url": "https://www.youtube.com/watch?v=b7qcOIhN5Dg"
+    },
+    {
+      "title": "Dekha Hai Pehli Baar",
+      "film": "Saajan",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=5bL8Ta9ii7A"
+    },
+    {
+      "title": "Too Shayar Hai Main Teri Shayari",
+      "film": "Saajan",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=2T8goVHNd8w"
+    },
+    {
+      "title": "Dil Hai Ke Manta Nahin",
+      "film": "Dil Hai Ke Manta Nahin",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=NiVVvkUCWZo"
+    },
+    {
+      "title": "Mujhe Neend Na Aaye",
+      "film": "Dil",
+      "year": 1990,
+      "youtube_url": "https://www.youtube.com/watch?v=LvqEcIAsh5k"
+    },
+    {
+      "title": "Kitaben Bahut Si",
+      "film": "Baazigar",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=ogNBUvwT0hc"
+    },
+    {
+      "title": "Bahut Pyar Karte Hain",
+      "film": "Saajan",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=EYJO5yDLapg"
+    },
+    {
+      "title": "Tumhein Apna Banane Ki Kasam",
+      "film": "Sadak",
+      "year": 1991,
+      "youtube_url": "https://www.youtube.com/watch?v=tPNwGuu_rQ4"
+    },
+    {
+      "title": "Aisi Deewangi",
+      "film": "Deewana",
+      "year": 1992,
+      "youtube_url": "https://www.youtube.com/watch?v=GwpqME_Cmpc"
+    },
+    {
+      "title": "Baazigar O Baazigar",
+      "film": "Baazigar",
+      "year": 1993,
+      "youtube_url": "https://www.youtube.com/watch?v=PUO7_Gi6ipg"
+    },
+    {
+      "title": "Tu Cheez Badi Hai Mast Mast",
+      "film": "Mohra",
+      "year": 1994,
+      "youtube_url": "https://www.youtube.com/watch?v=K-pX4qwtAxA"
+    },
+    {
+      "title": "Saat Samundar Paar",
+      "film": "Vishwatma",
+      "year": 1992,
+      "youtube_url": "https://www.youtube.com/watch?v=7TManB-eG_g"
+    },
+    {
+      "title": "Na Kajre Ki Dhar",
+      "film": "Mohra",
+      "year": 1994,
+      "youtube_url": "https://www.youtube.com/watch?v=tIALY5lEzfA"
+    },
+    {
+      "title": "Sochenge Tumhe Pyar",
+      "film": "Deewana",
+      "year": 1992,
+      "youtube_url": "https://www.youtube.com/watch?v=x5eYr7voNiY"
+    },
+    {
+      "title": "Mai Agar Saamne",
+      "film": "Raaz",
+      "year": 2002,
+      "youtube_url": "https://www.youtube.com/watch?v=B2aHXbnu9dI"
+    },
+    {
+      "title": "Dil Laga Liya Maine",
+      "film": "Dil Hai Tumhaara",
+      "year": 2002,
+      "youtube_url": "https://www.youtube.com/watch?v=6qBdQzPnw4E"
+    },
+    {
+      "title": "Dekhne Walon Ne",
+      "film": "Chori Chori Chupke Chupke",
+      "year": 2001,
+      "youtube_url": "https://www.youtube.com/watch?v=-TcBth7zPaw"
+    },
+    {
+      "title": "Ye Dil Aashiqana",
+      "film": "Ye Dil Aashiqana",
+      "year": 2002,
+      "youtube_url": "https://www.youtube.com/watch?v=ox2Mtg7QzSw"
+    },
+    {
+      "title": "Chand Se Parda",
+      "film": "Aao Pyaar Karen",
+      "year": 1994,
+      "youtube_url": "https://www.youtube.com/watch?v=fZozVRg1gyE"
+    },
+    {
+      "title": "Pehli Pehli Baar Mohabbat Ki Hai",
+      "film": "Sirf Tum",
+      "year": 1999,
+      "youtube_url": "https://www.youtube.com/watch?v=MPeq5g_KbsM"
+    },
+    {
+      "title": "Woh Ladki Bahut Yaad Aati Hai",
+      "film": "Qayamat",
+      "year": 2003,
+      "youtube_url": "https://www.youtube.com/watch?v=l1_l47D2gWU"
+    },
+    {
+      "title": "Love Tujhe Love Main",
+      "film": "Barsaat",
+      "year": 1995,
+      "youtube_url": "https://www.youtube.com/watch?v=wrlhJlCqXjs"
+    },
+    {
+      "title": "Tera Naam Liya Tujhe Yaad Kiya",
+      "film": "Ram Lakhan",
+      "year": 1989,
+      "youtube_url": "https://www.youtube.com/watch?v=WWGibhzNyR8"
+    },
+    {
+      "title": "Jo Bhi Kasmein",
+      "film": "Raaz",
+      "year": 2002,
+      "youtube_url": "https://www.youtube.com/watch?v=ZVG5u3_o93U"
+    }
+  ]
 }
