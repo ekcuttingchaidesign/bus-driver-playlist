@@ -26,7 +26,7 @@
   --amber:    #e8a33d;
   --dim:      rgba(244,230,205,.62);
 
-  --dwell:    10s;    /* must match DWELL_MS in app.js */
+  --dwell:    7s;     /* must match DWELL_MS in app.js */
   --fade:     1200ms; /* must match FADE_MS  in app.js */
 
   /* Album art. The iframe is *built* at --disc-native (YouTube's documented

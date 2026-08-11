@@ -4,7 +4,7 @@
 (() => {
   'use strict';
 
-  const DWELL_MS = 10000;   // keep in sync with --dwell in style.css
+  const DWELL_MS = 7000;    // keep in sync with --dwell in style.css
   const FADE_MS  = 1200;    // keep in sync with --fade  in style.css
 
   // The iframe is built 16:9 at YouTube's documented 200px minimum so their
@@ -234,6 +234,12 @@
       return this.ctx;
     },
 
+    // A context built before any interaction starts suspended; browsers only
+    // let it run once the user has touched the page.
+    resume() {
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    },
+
     async load(url) {
       if (!this.ctx) return null;
       try {
@@ -289,15 +295,16 @@
     },
   };
 
-  // Traffic/engine bed, looping under the music. Follows the music: fades in
-  // while it plays, out when paused, muted, or the tab is hidden.
+  // Traffic/engine bed. Runs independently of the music: it starts as soon as
+  // the page is woken and keeps going whether or not a song is playing. Only
+  // mute or a hidden tab silence it.
   //
   // Deliberately a local file rather than a second YouTube player. YouTube's
   // setVolume is a no-op on iOS, so a YouTube ambience track could not be held
-  // at 30% there — it would play as loud as the songs. See spec.md §14.
+  // below the music there — it would play as loud as the songs. See spec.md §14.
   const Ambience = {
     SRC:    'ambience.mp3',
-    VOLUME: 0.30,
+    VOLUME: 0.50,
     FADE_S: 2.0,
 
     gain: null,
@@ -327,19 +334,30 @@
     sync() {
       if (!this.gain) return;
       const ctx = AudioBus.ctx;
-      const target =
-        (!document.hidden && !Player.muted && Player.isPlaying()) ? this.VOLUME : 0;
+      // Deliberately not conditioned on the music: the bed runs on its own.
+      const target = (!document.hidden && !Player.muted) ? this.VOLUME : 0;
       this.gain.gain.cancelScheduledValues(ctx.currentTime);
       this.gain.gain.setTargetAtTime(target, ctx.currentTime, this.FADE_S / 3);
     },
   };
 
-  // Called from the play button and from player state changes.
+  // The ambience should be running the moment someone arrives, but no browser
+  // will make sound before the page has been interacted with. So: build the
+  // context and start the loop straight away — it sits suspended and silent —
+  // then resume it on the first interaction of any kind, not just the play
+  // button. In practice that is the visitor's first tap, click or keypress,
+  // well before they reach for play. Calling this repeatedly is harmless.
   const armEffects = () => {
     if (!AudioBus.init()) return;
+    AudioBus.resume();
     Horn.arm();
     Ambience.arm();
+    if (AudioBus.ctx.state === 'running') {
+      WAKE_EVENTS.forEach((t) => window.removeEventListener(t, armEffects));
+    }
   };
+
+  const WAKE_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
 
   /* ------------------------------------------------------------------ *
    * Playlist                                                           *
@@ -578,6 +596,11 @@
   Player.loadApi();
   Slideshow.start();
   Passengers.start();
+
+  // Queue the ambience now; it becomes audible at the first interaction.
+  armEffects();
+  WAKE_EVENTS.forEach((t) =>
+    window.addEventListener(t, armEffects, { passive: true }));
 
   (async () => {
     await Playlist.load();

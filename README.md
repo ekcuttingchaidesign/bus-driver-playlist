@@ -3,7 +3,7 @@
 ### ▶ [ekcuttingchaidesign.github.io/bus-driver-playlist](https://ekcuttingchaidesign.github.io/bus-driver-playlist/)
 
 A one-page site that recreates the sound of a long-distance Indian bus: 90s
-Bollywood on a loop, over four illustrations that cross-fade every 10 seconds,
+Bollywood on a loop, over four illustrations that cross-fade every 7 seconds,
 with a traffic bed underneath and a horn every so often.
 
 Spiritual sibling of [saloon.wtf](https://saloon.wtf), which does the same for
@@ -27,11 +27,12 @@ python3 -m http.server 8000
 |---|---|
 | `index.html` | All the markup |
 | `style.css` | Layers, cross-fades, grain, responsive |
-| `app.js` | Slideshow, YouTube player, passenger counter |
+| `app.js` | Slideshow, YouTube player, horn, ambience, counter |
 | `playlist.json` | Track list — edit this, not the JS |
 | `images/` | 4 illustrations, WebP + JPEG, 1920px + 1280px |
 | `fonts/` | Noto Sans Devanagari, self-hosted (OFL 1.1) |
 | `bus-horn.mp3` | Horn sting, played at random intervals |
+| `ambience.mp3` | 40s traffic loop under everything |
 
 ## The horn
 
@@ -54,14 +55,21 @@ on every iPhone. A `GainNode` behaves everywhere.
 
 ## Traffic ambience
 
-A 40s loop under the music at **30% volume**, fading in when playback starts and
-out when it pauses, is muted, or the tab is hidden.
+A 40s loop at **50% volume**, running independently of the music — it starts as
+soon as the page is woken and keeps going whether or not a song is playing. Only
+mute or a hidden tab silence it.
+
+It can't literally sound before any interaction: no browser allows audio until
+the page has been touched. So the loop is started at page load in a suspended
+context and resumed on the **first interaction of any kind** — a click, tap,
+keypress or scroll anywhere, not just the play button — which in practice
+happens well before anyone reaches for play.
 
 Compressed from the 12.4 MB source to **313 KB** (40s, mono, 32 kHz, 64 kbps) —
 it loops, so nine minutes of audio bought nothing. The loop point is crossfaded
 so it does not click on wrap; verified gapless after MP3 decode.
 
-Tuning lives on the `Ambience` object in `app.js` — `VOLUME` (0.30) and
+Tuning lives on the `Ambience` object in `app.js` — `VOLUME` (0.50) and
 `FADE_S` (2.0).
 
 Replacing it: keep it seamlessly loopable and unremarkable — no sirens, no
@@ -113,7 +121,6 @@ slightly over-stocked.
   the presented player below YouTube's documented 200×200 minimum: a knowing
   deviation, low practical risk, and reversible in one line
   (`--disc: 200px; --disc-scale: 1`). See spec.md §12.2b.
-- The playlist currently holds one placeholder track pending curation.
 
 ## Deploying
 

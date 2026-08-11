@@ -1,7 +1,6 @@
 # Bus Driver Playlist — Specification
 
-**Status:** v1.2 — built. Site implemented and rendering; awaiting the curated
-song list and 9:16 image variants.
+**Status:** v1.3 — built and live. Awaiting 9:16 portrait image variants.
 **Date:** 2026-08-11
 
 **Decisions locked:** audio via YouTube IFrame API (§3, Option A) · images are
@@ -51,7 +50,7 @@ markup, styling, image assets, or track list. Two reasons:
 | R2 | Continuous playback of a curated 90s/2000s Bollywood playlist. |
 | R3 | Auto-advance to the next track when one ends. Playlist loops forever. |
 | R4 | Exactly 4 background images, full-bleed, cycling on a timer. |
-| R5 | Each image holds for **10s**, then cross-fades into the next. Loops 1→2→3→4→1. |
+| R5 | Each image holds for **7s**, then cross-fades into the next. Loops 1→2→3→4→1. |
 | ~~R6~~ | ~~An entry gate ("tap to start")~~ — **withdrawn**, see §4.1. The play button supplies the gesture instead. |
 | R7 | Minimal controls: play/pause, next, volume/mute. |
 | R8 | Current track title visible somewhere unobtrusive. |
@@ -170,7 +169,7 @@ R6 in §2.1 is therefore withdrawn.
 
 The one thing the gate did buy was a guaranteed head start on image preloading
 before the first cross-fade. The `<link rel="preload">` on slide 1, `eager`
-loading on the rest, and the 10s dwell before the first fade cover that.
+loading on the rest, and the 7s dwell before the first fade cover that.
 
 ### 4.2 Mobile realities
 
@@ -227,7 +226,7 @@ be portrait phones.
 Three ways out:
 
 1. **Horizontal Ken Burns pan on portrait** *(recommended)*. Rather than fight
-   the crop, use it: slowly pan across the wide image during its 10 seconds,
+   the crop, use it: slowly pan across the wide image during its dwell,
    revealing the composition like a camera move. This solves the crop *and* the
    §4.6 loop-monotony problem with the same mechanism, needs no new assets, and
    looks deliberate.
@@ -250,7 +249,7 @@ world.
 
 Images 03 and 04 depict a passenger being sick and a scuffle breaking out.
 They're funny and true to the format, but they're a sharp tonal turn from the
-warm nostalgia of 01 and 02, and each one holds the full screen for 10 seconds.
+warm nostalgia of 01 and 02, and each one holds the full screen for 7 seconds.
 Worth a deliberate decision: keep all four for the comedy, or lead with the two
 warm ones and treat the other two as punchlines deeper into the rotation.
 Flagging it because it's easy to not notice until it's live.
@@ -261,22 +260,24 @@ Flagging it because it's easy to not notice until it's live.
 - Controls must be real focusable buttons with labels, not divs.
 - Contrast: text over photographs needs a scrim or text-shadow, not hope.
 
-### 4.6 The 40-second loop problem
+### 4.6 The short-loop problem
 
-4 images × 10s = a **40-second** visual cycle, running under 4–5 minute songs.
-The loop will be noticed, roughly six times per track. Worth deciding
-deliberately rather than discovering after launch. Mitigations, cheapest first:
+4 images × **7s** = a **28-second** visual cycle, running under 4–5 minute
+songs — so the full set comes round roughly nine times per track. Shortening the
+dwell from 10s to 7s made the page livelier and the repetition more frequent;
+the Ken Burns drift below is what keeps that from reading as a stutter, since no
+two passes frame the image identically. Mitigations, cheapest first:
 
-1. **Ken Burns** — a very slow zoom/pan on each image (~1.04x over its 10s).
+1. **Ken Burns** — a very slow zoom/pan on each image (~1.05x over its 7s).
    Same 4 assets, but no two viewings look identical. Big effect, ~10 lines of
    CSS. *Recommended.*
-2. **Longer dwell** — 15–20s per image. Halves the loop frequency. Free.
+2. **Longer dwell** — back toward 10–15s per image. Cuts the loop frequency. Free.
 3. **Change on track change** instead of a fixed timer — ties visuals to music,
-   loop becomes invisible. But breaks the stated "10 seconds" requirement.
+   loop becomes invisible. But breaks the fixed-dwell requirement (R5).
 4. **More images.** Most effective, but you have 4.
 
-Recommendation: keep 10s as specified, add Ken Burns, and make the dwell time a
-single constant at the top of the file so it's a one-character change to try 15s.
+Ken Burns is in. Dwell is a single constant (`DWELL_MS` in `app.js`, mirrored by
+`--dwell` in `style.css`), so retuning it is a one-number change in two places.
 
 ---
 
@@ -389,7 +390,7 @@ The track-list path is kept as a fallback for when `playlistId` is absent.
 ```
 Landing  →  tap  →  Playing
    │                   │
-   │                   ├─ images cross-fade every 10s, forever
+   │                   ├─ images cross-fade every 7s, forever
    │                   ├─ track ends → next track
    │                   └─ controls: play/pause · next · mute
    │
@@ -416,14 +417,9 @@ no build step, no running costs, nothing to maintain between deploys.
 Not decisions — just things only you can hand over:
 
 - ~~**A1.** The 4 image files.~~ → **Received and compressed.** See §4.4.
-- **A2.** The curated song list. Deferred by you; a single placeholder track is
-  wired up meanwhile — YouTube ID `0pWsCiBvLOk`. Because `playlist.json` is
-  decoupled from the code, swapping in the real list later is a data edit with
-  no code change.
-  - *Unverified:* this sandbox cannot reach YouTube, so the video's title and —
-    more importantly — whether its owner permits embedding (errors 101/150, see
-    §5.4) could not be confirmed. Needs a 10-second check in a browser, or it
-    may simply skip itself on load.
+- ~~**A2.** The curated song list.~~ → **Received.** Playing from YouTube
+  playlist `PLVeY0XJJSxJMh2rXK2Taby1v23kj3P5_N`; see §5.4b. Curation now
+  happens on YouTube and needs no redeploy.
 
 ## 7b. Open questions — non-blocking
 
@@ -658,16 +654,18 @@ hosts. Not worth the risk for a filename.
 
 ## 14. Traffic ambience
 
-A looping traffic/engine bed under the music at 30%.
+A looping traffic/engine bed at 50%, running independently of the music.
 
 ### 14.1 Why not a second YouTube player
 
-The obvious route — a second `YT.Player` on an ambience video, held at 30% —
+The obvious route — a second `YT.Player` on an ambience video, held at a fixed
+level —
 **cannot meet its own requirement on iOS**:
 
 - **`setVolume()` is a no-op on iOS.** Volume there is hardware-only. The
   ambience would play at exactly the same level as the songs on every iPhone.
-  30% is the whole point of the feature, and it is unachievable this way.
+  A fixed level below the songs is the whole point, and it is unachievable
+  this way.
 - **Concurrent playback is unreliable on iOS**, where starting a second stream
   has historically paused the first. The failure mode is the *music* stopping.
 - It compounds the §12.2b deviation: a second player would also need to be
@@ -680,12 +678,32 @@ Desktop would be fine. Phones are most of the traffic for a shared link, so
 ### 14.2 What was built instead
 
 A local audio file through the same Web Audio path as the horn (§13), where a
-`GainNode` gives a true 30% on every platform including iOS.
+`GainNode` gives a true fixed level on every platform including iOS.
 
 - Loops gaplessly via `AudioBufferSourceNode.loop` for the whole session.
-- **Follows the music:** fades to 30% while it plays, to silence when paused,
-  muted, or the tab is hidden — over a ~2s ramp, so it breathes rather than
-  clicking on and off. Mute silences the whole cabin, not just the songs.
+- **Runs independently of the music**, at **50%**. It starts as soon as the page
+  is woken and keeps going whether or not a song is playing — you are on the bus
+  before the driver puts the tape in. Only mute or a hidden tab silence it, over
+  a ~2s ramp so it breathes rather than clicking on and off. Mute silences the
+  whole cabin, not just the songs.
+
+### 14.2b Starting before the music — what is actually possible
+
+Requested: the ambience should already be playing when someone opens the page.
+No browser permits sound before the page has been interacted with, and no
+`AudioContext` will leave `suspended` until then — this is the same wall as
+§4.1 and there is no way through it.
+
+What is done instead: the context is built and the loop **started** at page
+load, sitting suspended and silent, then resumed on the **first interaction of
+any kind** — `pointerdown`, `keydown`, `touchstart` or `wheel`, anywhere on the
+page. Not just the play button. In practice a visitor's first tap, click or
+scroll comes well before they reach for play, so the traffic is already running
+by the time they think about music.
+
+Verified in Chromium: `suspended` on load, `running` after a single neutral
+click away from any control. The wake listeners remove themselves once the
+context is running.
 - Horn and ambience share one `AudioContext` (`AudioBus`); browsers cap how
   many can exist and there's no reason for two.
 - **Absent file degrades to silence.** `ambience.mp3` is not in the repo yet;
@@ -702,7 +720,7 @@ bitrate.
 |---|---|
 | Trim to **40s** | It loops. Nine minutes buys nothing a listener can detect. |
 | **Mono** | Halves the data. A background bed has no stereo image to lose. |
-| **32 kHz**, 64 kbps | Traffic rumble is low-frequency and sits at 30%. Detail here is inaudible. |
+| **32 kHz**, 64 kbps | Traffic rumble is low-frequency and sits under the music. Detail here is inaudible. |
 
 **97.5% smaller**, and now the single largest asset is still the images.
 
@@ -726,7 +744,7 @@ Reproducing this from a new source file: decode → mono/32 kHz → take
 ## 11. Rough plan
 
 1. Scaffold `index.html` / `style.css` / `app.js`, landing gate, no audio.
-2. Image layer: 4 slots, preload, 10s cross-fade, Ken Burns, reduced-motion.
+2. Image layer: 4 slots, preload, 7s cross-fade, Ken Burns, reduced-motion.
 3. Player abstraction + chosen backend, auto-advance, error-skip.
 4. Controls, track title, grain/vignette pass.
 5. Mobile pass — real device, `100dvh`, tap targets, data weight.
