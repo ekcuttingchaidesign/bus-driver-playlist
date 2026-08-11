@@ -692,16 +692,34 @@ A local audio file through the same Web Audio path as the horn (§13), where a
   the fetch 404s, the module returns early, and nothing else is affected.
   Verified.
 
-### 14.3 What is still needed
+### 14.3 Compression — 12.4 MB → 313 KB
 
-An `ambience.mp3` in the repo root. It cannot be taken from a YouTube link —
-extracting audio from YouTube is against their terms, and the licensing problem
-from §3 returns in full. Sources that are clean: freesound.org (CC0 city
-traffic and bus-interior recordings), or any royalty-free library.
+The supplied file was **9 minutes** of 192 kbps stereo (12.4 MB). Since the bed
+loops, almost all of that was waste: the biggest saving is duration, not
+bitrate.
 
-Pick something **seamlessly loopable** and **unremarkable** — no sirens, no
-sudden events, nothing with a recognisable rhythm. It should be noticed only
-when it stops. 30–60s of steady traffic is plenty; it loops.
+| Step | Why |
+|---|---|
+| Trim to **40s** | It loops. Nine minutes buys nothing a listener can detect. |
+| **Mono** | Halves the data. A background bed has no stereo image to lose. |
+| **32 kHz**, 64 kbps | Traffic rumble is low-frequency and sits at 30%. Detail here is inaudible. |
+
+**97.5% smaller**, and now the single largest asset is still the images.
+
+**The loop is genuinely seamless**, which took care. Cutting 40s at an arbitrary
+point clicks audibly on every wrap. Instead the 2s immediately *after* the cut
+are crossfaded back over the opening 2s, so the last sample and the first are
+consecutive samples of the original recording.
+
+MP3 encoding then threatens that: encoders add delay and padding that can
+insert silence at the join. Verified in Chromium after a full decode —
+**39.996s, zero leading or trailing silence**, and a wrap-point jump of 0.029
+against a normal peak sample-to-sample step of 0.050. The join sits inside the
+signal's own motion, so it is inaudible.
+
+Reproducing this from a new source file: decode → mono/32 kHz → take
+`SKIP + LOOP + CROSSFADE` → wrap the crossfade tail over the head → encode
+64 kbps mono. The original 12.4 MB file remains in git history.
 
 ---
 
