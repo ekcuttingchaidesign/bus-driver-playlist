@@ -757,6 +757,16 @@
   Slideshow.start();
   Passengers.start();
 
+  // Read-only debug hook. Run __busAudio() in the console to see whether the
+  // browser has let the audio start, and at what level.
+  window.__busAudio = () => ({
+    ctx:      AudioBus.ctx ? AudioBus.ctx.state : 'not created',
+    clock:    AudioBus.ctx ? +AudioBus.ctx.currentTime.toFixed(2) : null,
+    ambience: Ambience.gain ? +Ambience.gain.gain.value.toFixed(3) : 'not started',
+    muted:    Player.muted,
+    playing:  Player.isPlaying(),
+  });
+
   // Queue the ambience now; it becomes audible at the first interaction.
   armEffects();
   WAKE_EVENTS.forEach((t) =>
