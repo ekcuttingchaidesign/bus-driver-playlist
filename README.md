@@ -1,7 +1,10 @@
 # Bus Driver Playlist
 
+### ▶ [ekcuttingchaidesign.github.io/bus-driver-playlist](https://ekcuttingchaidesign.github.io/bus-driver-playlist/)
+
 A one-page site that recreates the sound of a long-distance Indian bus: 90s
-Bollywood on a loop, over four illustrations that cross-fade every 10 seconds.
+Bollywood on a loop, over four illustrations that cross-fade every 10 seconds,
+with a traffic bed underneath and a horn every so often.
 
 Spiritual sibling of [saloon.wtf](https://saloon.wtf), which does the same for
 neighbourhood barbershops.
@@ -114,5 +117,11 @@ slightly over-stocked.
 
 ## Deploying
 
-Push to `main` and enable GitHub Pages on the repository root. Nothing else to
-configure — there is no backend.
+Already set up. Push to `main` and
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) publishes to
+[the live site](https://ekcuttingchaidesign.github.io/bus-driver-playlist/)
+in about a minute. Nothing to configure — there is no backend and no build step.
+
+It deploys from `main` specifically because the `github-pages` environment only
+accepts deployments from the default branch; a run on a feature branch is
+rejected before any step executes.
