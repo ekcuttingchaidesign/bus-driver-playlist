@@ -556,11 +556,21 @@ deliberately for the design:
 
 ### 12.3 Layout
 
-One centred player replaces the old split deck-and-dock. Pill (`border-radius:
-999px`) on desktop with the disc left and title/controls right; below 640px it
-stacks into a rounded rectangle, since a pill 200px tall reads as a mistake on a
-narrow screen. Masthead is fixed top-centre and persists across both the gate
-and playback. The passenger counter sits under the player.
+One centred player replaces the old split deck-and-dock: a rounded rectangle
+(`border-radius: 20px`, 1px white stroke at 50%) laid out as a single row —
+disc, then title, then controls — at every breakpoint. The title column is
+vertically centred against the art, and the controls are set off to the right
+with their own margin. With the disc at 80px there is no longer any reason to
+stack on mobile, so the shape stays consistent.
+
+**Titles clamp to two lines.** Real YouTube titles run long — *"Song | Film |
+Artist | Full Video Song"* — and the middle column is narrow once the disc and
+three controls take their share (≈126px on a 390px phone). A single line
+stranded almost all of it; two lines with ellipsis recover most of it and still
+fit inside the 80px disc height.
+
+Masthead is fixed top-centre and persists across both the gate and playback.
+The passenger counter sits under the player.
 
 ---
 
