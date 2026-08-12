@@ -1,6 +1,6 @@
 # Bus Driver Playlist
 
-### ▶ [ekcuttingchaidesign.github.io/bus-driver-playlist](https://ekcuttingchaidesign.github.io/bus-driver-playlist/)
+### ▶ [upbusdriver.wtf](https://upbusdriver.wtf/)
 
 A one-page site that recreates the sound of a long-distance Indian bus: 90s
 Bollywood on a loop, over four illustrations that cross-fade every 7 seconds,
@@ -167,8 +167,15 @@ slightly over-stocked.
 
 Already set up. Push to `main` and
 [`.github/workflows/pages.yml`](.github/workflows/pages.yml) publishes to
-[the live site](https://ekcuttingchaidesign.github.io/bus-driver-playlist/)
-in about a minute. Nothing to configure — there is no backend and no build step.
+[the live site](https://upbusdriver.wtf/) in about a minute. Nothing to
+configure — there is no backend and no build step.
+
+The domain is `upbusdriver.wtf`, registered at Dynadot and pointed at GitHub
+Pages by the apex `A` records and the `www` `CNAME`. The `CNAME` file in the
+repo root is what tells Pages to serve it — deleting it reverts the site to
+`ekcuttingchaidesign.github.io/bus-driver-playlist`. **Auto-renew is off, so
+the registration lapses one year from purchase (August 2027) unless renewed
+by hand.** Renewal is roughly $30, well above the ~₹251 first year.
 
 It deploys from `main` specifically because the `github-pages` environment only
 accepts deployments from the default branch; a run on a feature branch is
