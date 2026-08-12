@@ -31,6 +31,8 @@
     play:      'चलाएँ',
     spotify:   'Spotify',
     ytMusic:   'YT Music',
+    ambOff:    'ट्रैफ़िक की आवाज़ बंद करें',
+    ambOn:     'ट्रैफ़िक की आवाज़ चालू करें',
     mute:      'आवाज़ बंद करें',
     unmute:    'आवाज़ चालू करें',
   };
@@ -42,6 +44,7 @@
     title:    $('trackTitle'),
     player:   document.querySelector('.player'),
     links:    $('links'),
+    ambBtn:   $('ambBtn'),
     seek:     $('seek'),
     seekFill: $('seekFill'),
     seekKnob: $('seekKnob'),
@@ -446,6 +449,7 @@
 
     gain: null,
     armed: false,
+    enabled: true,     // its own switch, separate from the site-wide mute
 
     async arm() {
       if (this.armed || !AudioBus.ctx) return;
@@ -468,11 +472,20 @@
       this.sync();
     },
 
+    toggle() {
+      this.enabled = !this.enabled;
+      el.ambBtn.classList.toggle('is-off', !this.enabled);
+      el.ambBtn.setAttribute('aria-pressed', String(this.enabled));
+      el.ambBtn.setAttribute('aria-label', this.enabled ? T.ambOff : T.ambOn);
+      this.sync();
+    },
+
     sync() {
       if (!this.gain) return;
       const ctx = AudioBus.ctx;
       // Deliberately not conditioned on the music: the bed runs on its own.
-      const target = (!document.hidden && !Player.muted) ? this.VOLUME : 0;
+      const on = this.enabled && !document.hidden && !Player.muted;
+      const target = on ? this.VOLUME : 0;
       this.gain.gain.cancelScheduledValues(ctx.currentTime);
       this.gain.gain.setTargetAtTime(target, ctx.currentTime, this.FADE_S / 3);
     },
@@ -836,6 +849,8 @@
   el.playBtn.addEventListener('click', () => { armEffects(); Player.toggle(); });
   el.nextBtn.addEventListener('click', () => Player.next());
   el.prevBtn.addEventListener('click', () => Player.prev());
+  // Arming here too, so the very first click can be this button.
+  el.ambBtn.addEventListener('click', () => { armEffects(); Ambience.toggle(); });
   document.addEventListener('visibilitychange', () => Ambience.sync());
   Progress.start();
   el.muteBtn.addEventListener('click', () => Player.toggleMute());

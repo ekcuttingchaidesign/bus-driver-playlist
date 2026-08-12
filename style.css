@@ -152,11 +152,24 @@ body{
   margin:0;
   color:#fff;
   font-weight:800;
-  font-size:clamp(2.54rem, 9.1vw, 5.46rem);   /* +30% */
+  font-size:clamp(2.54rem, 9.1vw, 5.46rem);
   line-height:1.16;
   letter-spacing:.005em;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 6px 34px rgba(0,0,0,.62);
   text-wrap:balance;
+}
+
+/* Title artwork. Alpha is baked into the asset from the brightest channel,
+   so the black ground is genuinely gone. A blend mode cannot be used here:
+   .masthead is position:fixed with a z-index, which forms a stacking
+   context, so `screen` would blend against the masthead's own gradient
+   instead of the photograph — and render as a black slab. */
+.masthead__title img{
+  display:block;
+  width:min(46vw, 560px);
+  height:auto;
+  margin-inline:auto;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
 }
 
 .masthead__sub{
@@ -491,6 +504,11 @@ body{
 .btn.is-paused .ico-pause{ display:none; }
 .mute.is-muted .ico-muted{ display:block; }
 .mute.is-muted .ico-loud { display:none; }
+
+.ico-amb-off{ display:none; }
+.mute.is-off .ico-amb-off{ display:block; }
+.mute.is-off .ico-amb-on { display:none; }
+.mute.is-off{ background:rgba(20,16,12,.42); color:rgba(255,255,255,.45); }
 
 /* passengers ------------------------------------------------------ */
 

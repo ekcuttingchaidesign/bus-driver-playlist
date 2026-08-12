@@ -13,7 +13,8 @@
 
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preload" as="font" type="font/woff2" href="fonts/noto-devanagari.woff2" crossorigin>
-<link rel="preload" as="image" href="images/01.webp" imagesrcset="images/01-1280.webp 1280w, images/01.webp 1920w" imagesizes="100vw">
+<link rel="preload" as="image" media="(orientation: landscape)" href="images/01.webp" imagesrcset="images/01-1280.webp 1280w, images/01.webp 1920w" imagesizes="100vw">
+<link rel="preload" as="image" media="(orientation: portrait)" href="images/01p.webp" imagesrcset="images/01p-720.webp 720w, images/01p.webp 1080w" imagesizes="100vw">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -24,6 +25,8 @@
     <!-- Active from first paint so artwork shows before anything else loads. -->
     <div class="slide is-active" data-slide="0">
       <picture>
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/01p-720.webp 720w, images/01p.webp 1080w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/01p-720.jpg 720w, images/01p.jpg 1080w" sizes="100vw">
         <source type="image/webp" srcset="images/01-1280.webp 1280w, images/01.webp 1920w" sizes="100vw">
         <source type="image/jpeg" srcset="images/01-1280.jpg 1280w, images/01.jpg 1920w" sizes="100vw">
         <img src="images/01.jpg" alt="" decoding="async" fetchpriority="high">
@@ -32,6 +35,8 @@
 
     <div class="slide" data-slide="1">
       <picture>
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/02p-720.webp 720w, images/02p.webp 1080w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/02p-720.jpg 720w, images/02p.jpg 1080w" sizes="100vw">
         <source type="image/webp" srcset="images/02-1280.webp 1280w, images/02.webp 1920w" sizes="100vw">
         <source type="image/jpeg" srcset="images/02-1280.jpg 1280w, images/02.jpg 1920w" sizes="100vw">
         <img src="images/02.jpg" alt="" decoding="async" loading="eager">
@@ -40,6 +45,8 @@
 
     <div class="slide" data-slide="2">
       <picture>
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/03p-720.webp 720w, images/03p.webp 1080w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/03p-720.jpg 720w, images/03p.jpg 1080w" sizes="100vw">
         <source type="image/webp" srcset="images/03-1280.webp 1280w, images/03.webp 1920w" sizes="100vw">
         <source type="image/jpeg" srcset="images/03-1280.jpg 1280w, images/03.jpg 1920w" sizes="100vw">
         <img src="images/03.jpg" alt="" decoding="async" loading="eager">
@@ -48,6 +55,8 @@
 
     <div class="slide" data-slide="3">
       <picture>
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/04p-720.webp 720w, images/04p.webp 1080w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/04p-720.jpg 720w, images/04p.jpg 1080w" sizes="100vw">
         <source type="image/webp" srcset="images/04-1280.webp 1280w, images/04.webp 1920w" sizes="100vw">
         <source type="image/jpeg" srcset="images/04-1280.jpg 1280w, images/04.jpg 1920w" sizes="100vw">
         <img src="images/04.jpg" alt="" decoding="async" loading="eager">
@@ -61,13 +70,28 @@
 </div>
 
 <header class="masthead">
-  <h1 class="masthead__title">उत्तर प्रदेश म्यूज़िकल परिवाहन</h1>
+  <!-- EXPERIMENT: hand-painted title artwork in place of live text.
+       The source has an opaque black ground, knocked out with
+       mix-blend-mode: screen rather than needing a transparent export.
+       To roll back, revert this commit — the text version returns. -->
+  <h1 class="masthead__title">
+    <img src="images/title.webp"
+         srcset="images/title-800.webp 760w, images/title.webp 1100w"
+         sizes="(max-width:640px) 84vw, min(46vw, 560px)"
+         alt="उत्तर प्रदेश म्यूज़िकल परिवाहन" decoding="async" fetchpriority="high">
+  </h1>
   <p class="masthead__sub">आपका स्वागत करती है</p>
 </header>
 
 <div class="topbar">
   <!-- Populated from playlist.json → links. Stays hidden if none are set. -->
   <nav class="links" id="links" aria-label="कहीं और सुनिए" hidden></nav>
+
+  <!-- Traffic bed on its own, independent of the site-wide mute. -->
+  <button class="mute" id="ambBtn" type="button" aria-label="ट्रैफ़िक की आवाज़ बंद करें" aria-pressed="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-amb-on"><path d="M3 13h2v-2H3v2zm4 4h2V7H7v10zm4 3h2V4h-2v16zm4-3h2V7h-2v10zm4-6v2h2v-2h-2z"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-amb-off"><path d="M3 13h2v-2H3v2zm4 2h2v-6H7v6zm8 0h2V9h-2v6zm4-4v2h2v-2h-2zM11 13h2v-2h-2v2z"/></svg>
+  </button>
 
   <!-- Mutes everything: music, horn and ambience. -->
   <button class="mute" id="muteBtn" type="button" aria-label="आवाज़ बंद करें">
