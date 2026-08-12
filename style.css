@@ -14,6 +14,16 @@
                 U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
 }
 
+/* Used only by the interruption. Latin subset, so it never loads for the
+   Devanagari the rest of the page is set in. */
+@font-face{
+  font-family:'Jaro';
+  src:url('fonts/jaro.woff2') format('woff2');
+  font-weight:400;
+  font-display:block;      /* the words are the joke — better late than wrong */
+  unicode-range:U+0000-00FF;
+}
+
 @font-face{
   font-family:'Noto Sans Devanagari';
   src:url('fonts/noto-devanagari.woff2') format('woff2');
@@ -661,7 +671,7 @@ body{
 
   /* Two columns of huge type don't fit side by side on a phone — at the
      desktop size they run into each other in the middle of the screen. */
-  .fine__words{ font-size:clamp(2.2rem, 11.5vmin, 4.4rem); }
+  .fine__field{ font-size:clamp(2.2rem, 11.5vmin, 4.4rem); }
   .fine__face{ width:min(34vmin, 220px); }
 
   /* No room for a corner here: the counter is centred and the note is wider
@@ -705,6 +715,8 @@ body{
   transform:scale(1.15);
 }
 
+.skull img{ width:21px; height:21px; display:block; }
+
 .fine__face{
   position:relative; z-index:2;
   width:min(38vmin, 300px);
@@ -715,34 +727,35 @@ body{
   transform:translateY(-4vh);
 }
 
-/* Two columns of oversized type, one per side. Only one side is lit at a
-   time; JS flips which on every beat. clamp keeps the words huge without
-   letting them push a scrollbar onto the page. */
-.fine__words{
-  position:absolute; top:50%; z-index:1;
-  transform:translateY(-50%);
+/* A full-screen field of one word, tiled edge to edge and bleeding past all
+   four sides so it reads as wallpaper rather than as a list. Only one field
+   is up at a time — the other is not rendered at all, so the two words
+   strictly alternate instead of overlapping. */
+.fine__field{
+  position:absolute; inset:-6% -12%; z-index:1;
   display:flex; flex-direction:column;
-  gap:.06em;
-  font-weight:900;
-  font-size:clamp(3.6rem, 19vmin, 14rem);
-  line-height:.92;
-  letter-spacing:.02em;
+  justify-content:center; align-items:center;
+  gap:.02em;
+  font-family:'Jaro', 'Host Grotesk', system-ui, sans-serif;
+  font-weight:400;
+  font-size:clamp(3rem, 13vmin, 9rem);
+  line-height:.94;
+  letter-spacing:.01em;
   color:#fff;
   white-space:nowrap;
-  opacity:.16;
-  transition:opacity 90ms linear, transform 90ms linear;
   pointer-events:none;
+  opacity:0;
+  visibility:hidden;
 }
-/* Pulled past the edges on purpose: the words run off the screen rather than
-   sitting politely inside it. .fine clips the overflow. */
-.fine__words--l{ left:-1.5vw;  text-align:left; }
-.fine__words--r{ right:-1.5vw; text-align:right; align-items:flex-end; }
 
-/* The beat: whichever side is on gets full opacity and a small kick. */
-.fine.is-l .fine__words--l,
-.fine.is-r .fine__words--r{
+/* Rows alternate their offset so the tiling doesn't read as a rigid grid. */
+.fine__field .row{ display:block; }
+.fine__field .row:nth-child(even){ transform:translateX(-.22em); }
+
+.fine.is-fine .fine__field--fine,
+.fine.is-shyt .fine__field--shyt{
   opacity:1;
-  transform:translateY(-50%) scale(1.045);
+  visibility:visible;
 }
 
 .fine__stop{
@@ -779,10 +792,10 @@ body{
 /* ---------- accessibility ---------- */
 
 @media (prefers-reduced-motion:reduce){
-  /* No flashing: both sides stay lit and still. */
-  .fine__words{ opacity:.85; transition:none; }
-  .fine.is-l .fine__words--l,
-  .fine.is-r .fine__words--r{ transform:translateY(-50%); }
+  /* No flashing: the FINE field stays up and the alternation never shows.
+     Specific enough to beat the .fine.is-shyt rule above. */
+  .fine .fine__field--fine{ opacity:1; visibility:visible; }
+  .fine .fine__field--shyt{ opacity:0; visibility:hidden; }
 
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }

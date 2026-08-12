@@ -27,3 +27,14 @@ Licensed under the SIL Open Font License, Version 1.1.
 
 Variable weight (100–900), so one file covers every weight the player uses.
 Latin only — Devanagari falls through to Noto via `unicode-range`.
+
+**Jaro** — © The Jaro Project Authors.
+Licensed under the SIL Open Font License, Version 1.1.
+
+| File | Subset | Size |
+|---|---|---|
+| `jaro.woff2` | Latin | 11 KB |
+
+Used only by the interruption (§16), so `unicode-range` keeps it from being
+fetched by anyone who never presses the skull. Downloaded from Google Fonts
+and self-hosted for the same reasons as the others.

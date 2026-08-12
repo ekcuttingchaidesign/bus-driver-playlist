@@ -61,6 +61,8 @@
     skullBtn: $('skullBtn'),
     fine:     $('fine'),
     fineStop: $('fineStop'),
+    fieldFine: $('fieldFine'),
+    fieldShyt: $('fieldShyt'),
   };
 
   /* ------------------------------------------------------------------ *
@@ -879,10 +881,16 @@
     // on-beat for this track and is the one number to tune by ear.
     BEAT_MS: 500,
 
+    // The face and the button land first; the words hold off for this long so
+    // the mode arrives in two steps rather than all at once.
+    LEAD_IN_MS: 600,
+
     yt: null,
     active: false,
     timer: null,
+    leadIn: null,
     _resumeMusic: false,
+    _built: false,
 
     open() {
       if (this.active) return;
@@ -896,8 +904,11 @@
 
       el.fine.hidden = false;
       el.fineStop.focus();
-      this._beat();
+      this._build();
       this._audio();
+
+      // Words come in after the lead-in, not with the screen.
+      this.leadIn = setTimeout(() => this._beat(), this.LEAD_IN_MS);
     },
 
     close() {
@@ -905,9 +916,11 @@
       this.active = false;
 
       clearInterval(this.timer);
+      clearTimeout(this.leadIn);      // pressed inside the lead-in: nothing pending
       this.timer = null;
+      this.leadIn = null;
       el.fine.hidden = true;
-      el.fine.classList.remove('is-l', 'is-r');
+      el.fine.classList.remove('is-fine', 'is-shyt');
 
       try { if (this.yt) this.yt.stopVideo(); } catch { /* never loaded */ }
 
@@ -919,13 +932,35 @@
 
     toggle() { this.active ? this.close() : this.open(); },
 
+    // Enough rows of the word to cover the screen, worked out from the line
+    // height the CSS actually resolved to rather than a guessed count — the
+    // font size is viewport-relative, so a fixed number would leave gaps on a
+    // desktop and overflow a phone.
+    _build() {
+      if (this._built) return;
+      this._built = true;
+
+      const fill = (node, word) => {
+        const line = parseFloat(getComputedStyle(node).lineHeight) || 100;
+        const rows = Math.ceil(node.getBoundingClientRect().height / line) + 1;
+        // One row is the word repeated until it runs past both edges.
+        const perRow = Math.ceil(node.getBoundingClientRect().width
+          / (line * 2.1)) + 1;
+        node.innerHTML = Array.from({ length: rows }, () =>
+          `<span class="row">${Array(perRow).fill(word).join(' ')}</span>`).join('');
+      };
+
+      fill(el.fieldFine, 'FINE');
+      fill(el.fieldShyt, 'SHYT');
+    },
+
     _beat() {
       let on = false;
-      el.fine.classList.add('is-l');
+      el.fine.classList.add('is-fine');
       this.timer = setInterval(() => {
         on = !on;
-        el.fine.classList.toggle('is-l', !on);
-        el.fine.classList.toggle('is-r', on);
+        el.fine.classList.toggle('is-fine', !on);
+        el.fine.classList.toggle('is-shyt', on);
       }, this.BEAT_MS);
     },
 

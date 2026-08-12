@@ -910,6 +910,16 @@ still works and covers this player too.
 3Hz flashing threshold, but `prefers-reduced-motion` drops it entirely — both
 sides stay lit and still.
 
-**Layout:** the words are pulled past both edges and clipped, so they run off
-screen rather than sitting inside it. Below 640px they shrink: at the desktop
-size the two columns collide in the middle of a phone screen.
+**Layout:** each word is a full-screen field, tiled edge to edge and bleeding
+past all four sides, in **Jaro** (self-hosted, Latin subset only, so it is
+never fetched by anyone who does not press the skull). The rows and the
+repeats per row are computed from the resolved line height rather than
+hardcoded — the type is viewport-relative, so a fixed count leaves gaps on a
+desktop and overflows a phone.
+
+**Only ever one word.** The inactive field is `visibility:hidden`, not merely
+faded, so FINE and SHYT strictly alternate and never share the screen.
+
+**Lead-in.** `Fine.LEAD_IN_MS` (600ms) holds the words back after the screen
+appears, so the mode arrives in two steps: face and button, then the words.
+Pressing the button inside that window cancels the pending start.
