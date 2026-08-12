@@ -50,6 +50,7 @@
     seekKnob: $('seekKnob'),
     tCur:     $('tCur'),
     tDur:     $('tDur'),
+    discArt:  $('discArt'),
     prevBtn:  $('prevBtn'),
     playBtn:  $('playBtn'),
     nextBtn:  $('nextBtn'),
@@ -519,6 +520,40 @@
   ];
 
   /* ------------------------------------------------------------------ *
+   * Disc art                                                           *
+   *                                                                    *
+   * The record label. mqdefault is the 320x180 thumbnail — 16:9 with   *
+   * no letterbox bars, unlike hqdefault — which is ample for a label   *
+   * under 100px. If it fails to load the label stays bare rather than  *
+   * showing a broken image.                                            *
+   * ------------------------------------------------------------------ */
+
+  const Art = {
+    id: null,
+
+    set(videoId) {
+      if (!el.discArt || videoId === this.id) return;
+      this.id = videoId || null;
+
+      el.discArt.classList.remove('is-ready');
+      if (!videoId) { el.discArt.removeAttribute('src'); return; }
+      el.discArt.src = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`;
+    },
+
+    start() {
+      if (!el.discArt) return;
+      el.discArt.addEventListener('load', () => {
+        el.discArt.classList.add('is-ready');
+      });
+      el.discArt.addEventListener('error', () => {
+        el.discArt.classList.remove('is-ready');
+        el.discArt.removeAttribute('src');
+        this.id = null;         // so a later retry of the same track can load
+      });
+    },
+  };
+
+  /* ------------------------------------------------------------------ *
    * Playlist                                                           *
    * ------------------------------------------------------------------ */
 
@@ -714,9 +749,17 @@
 
     _showTitle() {
       let name = '';
-      try { name = this.yt.getVideoData().title || ''; } catch { /* not ready */ }
+      let id = '';
+      try {
+        const data = this.yt.getVideoData();
+        name = data.title || '';
+        id = data.video_id || '';
+      } catch { /* not ready */ }
       const meta = Playlist.isPlaylist() ? null : Playlist.current();
       Title.set((meta && meta.title) || name || T.unknown);
+      // Track metadata wins: right after a load it is already the new song,
+      // while getVideoData can still be reporting the previous one.
+      Art.set((meta && meta.videoId) || id || null);
     },
 
     _fail(msg) {
@@ -726,6 +769,9 @@
     play(track) {
       if (!track || !this.yt) return;
       this.yt.loadVideoById(track.videoId);
+      // Straight from the track: getVideoData still reports the old video for
+      // a moment after loadVideoById, which would flash the previous label.
+      Art.set(track.videoId);
       this._showTitle();
     },
 
@@ -808,6 +854,7 @@
   Player.loadApi();
   Slideshow.start();
   Passengers.start();
+  Art.start();
 
   // Read-only debug hook. Run __busAudio() in the console to see whether the
   // browser has let the audio start, and at what level.
@@ -826,6 +873,11 @@
 
   (async () => {
     await Playlist.load();
+
+    // Label the record before anything is playing, so the disc is never a
+    // blank hole while the API loads.
+    const first = Playlist.current();
+    if (first) Art.set(first.videoId);
 
     try {
       await Player.whenReady();

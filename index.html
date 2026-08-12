@@ -105,16 +105,22 @@
      paused, and the first press starts it. -->
 <div class="hud" id="hud">
 
-  <!-- The circular art IS the YouTube player, clipped to a circle. The
-       IFrame API terms require the player stay visible at 200x200 or more,
-       so it is the record rather than something hidden behind one. -->
+  <!-- The circular art is a spinning record. The live YouTube player still
+       sits inside the disc at its full 200px size — it supplies the audio —
+       with the vinyl face drawn over it, so what you see is the artwork
+       rather than the video. -->
   <div class="player">
-    <!-- The ring spins while playing; the disc itself holds the live player
-         and stays upright, so the video is never rotated or covered. -->
+    <!-- Ring and vinyl turn together at the same rate while playing. -->
     <div class="player__art">
       <div class="player__ring" aria-hidden="true"></div>
       <div class="player__disc">
         <div id="ytplayer"></div>
+        <div class="player__vinyl" aria-hidden="true">
+          <!-- Label art: the current track's YouTube thumbnail. Fades in
+               once loaded; if it 404s the bare label is left showing. -->
+          <img class="player__thumb" id="discArt" src="" alt="" decoding="async">
+          <span class="player__spindle"></span>
+        </div>
       </div>
     </div>
 

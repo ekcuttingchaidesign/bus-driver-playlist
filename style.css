@@ -259,9 +259,9 @@ body{
     inset -1px 0 1.5px rgba(255,150,120,.26);
 }
 
-/* Record ring. Sits *behind* and slightly proud of the disc, so it never
-   covers the player. Spinning the disc itself would rotate a playing video —
-   disorienting, and it would obscure the player we are required to show. */
+/* Record ring. Sits *behind* and slightly proud of the disc, reading as the
+   outer edge of the record. Turns at the same rate as the vinyl face so the
+   two read as one object. */
 .player__art{
   position:relative; flex:0 0 auto;
   width:var(--disc); height:var(--disc);
@@ -299,9 +299,55 @@ body{
     0 6px 18px rgba(0,0,0,.55);
 }
 
+/* Vinyl face. Covers the iframe: the player is still there and still the
+   source of the audio, but what shows is the record. Grooves are drawn as
+   fine repeating rings, with the track thumbnail as the centre label. */
+.player__vinyl{
+  position:absolute; inset:0; z-index:2;
+  border-radius:50%;
+  display:grid; place-items:center;
+  overflow:hidden;
+  /* Swallows clicks rather than passing them to the iframe underneath: with
+     the video hidden, a click landing on it would pause the song with no
+     visible cause. Playback belongs to the buttons. */
+  pointer-events:auto;
+  background:
+    repeating-radial-gradient(circle at 50% 50%,
+      rgba(255,255,255,.055) 0 1px,
+      rgba(0,0,0,0) 1px 4px),
+    radial-gradient(circle at 32% 26%,
+      rgba(255,255,255,.16), rgba(255,255,255,0) 58%),
+    #0d0b09;
+  animation:spin 7s linear infinite;
+  animation-play-state:paused;      /* runs only while the music plays */
+}
+.player.is-playing .player__vinyl{ animation-play-state:running; }
+
+/* Centre label. Sized as a label, not a poster — the grooves stay visible
+   around it. mqdefault is 16:9 with no letterbox bars, so cover-cropping it
+   into the circle loses only the sides. */
+.player__thumb{
+  width:56%; height:56%;
+  border-radius:50%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity .45s ease;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6), 0 0 0 2px rgba(255,255,255,.14);
+}
+.player__thumb.is-ready{ opacity:1; }
+
+/* Spindle hole, over the middle of the label. */
+.player__spindle{
+  position:absolute;
+  width:11%; height:11%;
+  border-radius:50%;
+  background:#14100c;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);
+}
+
 /* The API swaps #ytplayer for an iframe of the same id. Built 16:9 at the
    native height so YouTube renders a normal player, then scaled down and
-   centred so the video fills the small circle rather than letterboxing. */
+   centred to fill the small circle. It sits under the vinyl face above. */
 .player__disc #ytplayer,
 .player__disc iframe{
   position:absolute; top:50%; left:50%;
@@ -613,7 +659,8 @@ body{
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }
   .passengers::before{ animation:none; }
-  .player.is-playing .player__ring{ animation:none; }
+  .player.is-playing .player__ring,
+  .player.is-playing .player__vinyl{ animation:none; }
   /* No scrolling. The mask still fades the overflow, so it reads as
      "continues" rather than being chopped off. */
   .player__title.is-scrolling .title__track{ animation:none; }
