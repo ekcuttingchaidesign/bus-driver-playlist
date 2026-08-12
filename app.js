@@ -58,6 +58,9 @@
     nextBtn:  $('nextBtn'),
     muteBtn:  $('muteBtn'),
     passengers: $('passengers'),
+    skullBtn: $('skullBtn'),
+    fine:     $('fine'),
+    fineStop: $('fineStop'),
   };
 
   /* ------------------------------------------------------------------ *
@@ -435,7 +438,8 @@
         // a fresh interval, so two audible horns are never closer than
         // MIN_GAP_MS.
         const awake = AudioBus.ctx && AudioBus.ctx.state === 'running';
-        if (awake && !document.hidden && !Player.muted && Ambience.enabled) {
+        if (awake && !document.hidden && !Player.muted && Ambience.enabled
+            && !Fine.active) {
           this.blast();
         }
         this._schedule();
@@ -492,7 +496,9 @@
       if (!this.gain) return;
       const ctx = AudioBus.ctx;
       // Deliberately not conditioned on the music: the bed runs on its own.
-      const on = this.enabled && !document.hidden && !Player.muted;
+      // Fine.active silences the street for the duration of the interruption:
+      // the bus is not where the visitor is right now.
+      const on = this.enabled && !document.hidden && !Player.muted && !Fine.active;
       const target = on ? this.VOLUME : 0;
       this.gain.gain.cancelScheduledValues(ctx.currentTime);
       this.gain.gain.setTargetAtTime(target, ctx.currentTime, this.FADE_S / 3);
@@ -853,6 +859,116 @@
       el.muteBtn.classList.toggle('is-muted', this.muted);
       el.muteBtn.setAttribute('aria-label', this.muted ? T.unmute : T.mute);
       Ambience.sync();   // mute silences the whole cabin, not just the songs
+      Fine.syncMute();   // …and the interruption, if it is up
+    },
+  };
+
+  /* ------------------------------------------------------------------ *
+   * The interruption                                                   *
+   *                                                                    *
+   * Skull button hijacks the page: one loud loop, two words alternating*
+   * on the beat, and one way out. Its own YouTube player, so the bus   *
+   * playlist keeps its position and resumes exactly where it paused.   *
+   * ------------------------------------------------------------------ */
+
+  const Fine = {
+    VIDEO_ID: 'orupKbVNSvo',
+
+    // A fixed tempo, not beat detection: a cross-origin YouTube iframe gives
+    // no access to its audio, so nothing can be analysed. 500ms reads as
+    // on-beat for this track and is the one number to tune by ear.
+    BEAT_MS: 500,
+
+    yt: null,
+    active: false,
+    timer: null,
+    _resumeMusic: false,
+
+    open() {
+      if (this.active) return;
+      this.active = true;
+
+      // The bus goes quiet: music paused where it stands, street off. Two
+      // things playing over each other would just be noise.
+      this._resumeMusic = Player.isPlaying();
+      try { if (Player.yt) Player.yt.pauseVideo(); } catch { /* not ready */ }
+      Ambience.sync();
+
+      el.fine.hidden = false;
+      el.fineStop.focus();
+      this._beat();
+      this._audio();
+    },
+
+    close() {
+      if (!this.active) return;
+      this.active = false;
+
+      clearInterval(this.timer);
+      this.timer = null;
+      el.fine.hidden = true;
+      el.fine.classList.remove('is-l', 'is-r');
+
+      try { if (this.yt) this.yt.stopVideo(); } catch { /* never loaded */ }
+
+      // Back to the bus, exactly as it was.
+      Ambience.sync();
+      if (this._resumeMusic) { try { Player.yt.playVideo(); } catch { /* gone */ } }
+      el.skullBtn.focus();
+    },
+
+    toggle() { this.active ? this.close() : this.open(); },
+
+    _beat() {
+      let on = false;
+      el.fine.classList.add('is-l');
+      this.timer = setInterval(() => {
+        on = !on;
+        el.fine.classList.toggle('is-l', !on);
+        el.fine.classList.toggle('is-r', on);
+      }, this.BEAT_MS);
+    },
+
+    // Built on first open and kept afterwards: rebuilding the iframe would
+    // lose the user gesture that lets it make sound at all.
+    _audio() {
+      if (this.yt) {
+        try {
+          if (Player.muted) this.yt.mute(); else this.yt.unMute();
+          this.yt.seekTo(0, true);
+          this.yt.playVideo();
+        } catch { /* not ready yet; onReady below covers it */ }
+        return;
+      }
+      if (!window.YT || !YT.Player) return;   // API never loaded: silent, still funny
+
+      this.yt = new YT.Player('fineplayer', {
+        width: '200',
+        height: '200',
+        videoId: this.VIDEO_ID,
+        host: 'https://www.youtube-nocookie.com',
+        playerVars: { playsinline: 1, controls: 0, rel: 0, origin: window.location.origin },
+        events: {
+          onReady: () => {
+            if (Player.muted) this.yt.mute();
+            if (this.active) this.yt.playVideo();
+          },
+          // Looping by hand. The loop/playlist playerVars pair is unreliable
+          // for a single video, and a restart on ENDED always works.
+          onStateChange: (e) => {
+            if (e.data === YT.PlayerState.ENDED && this.active) {
+              this.yt.seekTo(0, true);
+              this.yt.playVideo();
+            }
+          },
+        },
+      });
+    },
+
+    syncMute() {
+      try {
+        if (this.yt) Player.muted ? this.yt.mute() : this.yt.unMute();
+      } catch { /* not ready */ }
     },
   };
 
@@ -914,6 +1030,9 @@
   el.prevBtn.addEventListener('click', () => Player.prev());
   // Arming here too, so the very first click can be this button.
   el.ambBtn.addEventListener('click', () => { armEffects(); Ambience.toggle(); });
+  // The click itself is the gesture the loop needs in order to make sound.
+  el.skullBtn.addEventListener('click', () => { armEffects(); Fine.open(); });
+  el.fineStop.addEventListener('click', () => Fine.close());
   document.addEventListener('visibilitychange', () => Ambience.sync());
   Progress.start();
   el.muteBtn.addEventListener('click', () => Player.toggleMute());
@@ -921,6 +1040,16 @@
   document.addEventListener('keydown', (e) => {
     // Arrows belong to the seek bar while it has focus.
     if (e.target.matches('input, textarea') || e.target === el.seek) return;
+
+    // While the interruption is up it owns the keyboard: Escape is the way
+    // out, and the transport keys would otherwise drive a paused bus nobody
+    // can see. Mute still works, since it is the other thing you might want.
+    if (Fine.active) {
+      if (e.key === 'Escape') Fine.close();
+      if (e.key.toLowerCase() === 'm') Player.toggleMute();
+      return;
+    }
+
     if (e.code === 'Space') { e.preventDefault(); armEffects(); Player.toggle(); }
     if (e.code === 'ArrowLeft') Player.prev();
     if (e.code === 'ArrowRight') Player.next();

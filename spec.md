@@ -878,3 +878,38 @@ what is behind it.
 Nothing in this list is blocked on a decision any more. Steps 1–2 can start
 immediately using placeholder images; steps 3–4 are fully specified by §5.4.
 Step 5 needs the real images (A1) and the track list (A2) to be meaningful.
+
+---
+
+## 16. The interruption (skull button)
+
+A third round pill next to mute, marked with a skull. Pressing it takes the
+whole screen: the face, FINE and SHYT alternating at oversized type, one
+looping audio track, and a single way out marked STOP THIS SHIT.
+
+**The beat is fixed, not detected.** A cross-origin YouTube iframe exposes no
+audio to the page, so nothing can be analysed — `Fine.BEAT_MS` is a constant
+alternating the two words, currently 500ms. It is the one number to tune by
+ear; everything else about the mode is independent of it.
+
+**Its own player.** A second `YT.Player` on `#fineplayer` rather than
+borrowing the music one, so the playlist keeps its position and resumes on the
+exact song it was paused on. Built on first press and kept for the session:
+rebuilding the iframe would lose the user gesture that permits sound.
+
+**Everything else stops.** The music pauses (and resumes only if it was
+playing), the ambience bed fades out, and the horn is suppressed — three
+sources at once is noise, not a joke. `Fine.active` is the single flag all
+three consult.
+
+**Ways out:** the button, or Escape. While the mode is up it owns the
+keyboard, so space and the arrows do not drive a bus nobody can see. Mute
+still works and covers this player too.
+
+**Reduced motion:** the alternation is a 2Hz opacity flip, which is under the
+3Hz flashing threshold, but `prefers-reduced-motion` drops it entirely — both
+sides stay lit and still.
+
+**Layout:** the words are pulled past both edges and clipped, so they run off
+screen rather than sitting inside it. Below 640px they shrink: at the desktop
+size the two columns collide in the middle of a phone screen.

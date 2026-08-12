@@ -659,6 +659,11 @@ body{
   .masthead{ padding-top:calc(var(--pad) + 3.3rem); }
   .masthead__title img{ width:72vw; }
 
+  /* Two columns of huge type don't fit side by side on a phone — at the
+     desktop size they run into each other in the middle of the screen. */
+  .fine__words{ font-size:clamp(2.2rem, 11.5vmin, 4.4rem); }
+  .fine__face{ width:min(34vmin, 220px); }
+
   /* No room for a corner here: the counter is centred and the note is wider
      than the gap beside it, so the two collide. Back into the stack. */
   .note{
@@ -678,9 +683,107 @@ body{
   .masthead{ padding-bottom:2rem; }
 }
 
+/* ---------- the interruption ---------- */
+
+/* Sits above everything, including the topbar, so nothing from the bus is
+   reachable while it is up. Only STOP THIS SHIT gets out. */
+.fine{
+  position:fixed; inset:0; z-index:60;
+  display:grid; place-items:center;
+  overflow:hidden;
+  background:#0b0908;
+  padding:var(--pad);
+}
+.fine[hidden]{ display:none; }
+
+/* The face again, blown up and blurred, as the ground. Cheaper than shipping
+   a second asset and it keeps the palette to the one image. */
+.fine__bg{
+  position:absolute; inset:-8%;
+  background:url('fineshyt.png') center/cover no-repeat;
+  filter:blur(46px) saturate(130%) brightness(.55);
+  transform:scale(1.15);
+}
+
+.fine__face{
+  position:relative; z-index:2;
+  width:min(38vmin, 300px);
+  aspect-ratio:1;
+  object-fit:cover;
+  border-radius:14px;
+  box-shadow:0 18px 60px rgba(0,0,0,.6);
+  transform:translateY(-4vh);
+}
+
+/* Two columns of oversized type, one per side. Only one side is lit at a
+   time; JS flips which on every beat. clamp keeps the words huge without
+   letting them push a scrollbar onto the page. */
+.fine__words{
+  position:absolute; top:50%; z-index:1;
+  transform:translateY(-50%);
+  display:flex; flex-direction:column;
+  gap:.06em;
+  font-weight:900;
+  font-size:clamp(3.6rem, 19vmin, 14rem);
+  line-height:.92;
+  letter-spacing:.02em;
+  color:#fff;
+  white-space:nowrap;
+  opacity:.16;
+  transition:opacity 90ms linear, transform 90ms linear;
+  pointer-events:none;
+}
+/* Pulled past the edges on purpose: the words run off the screen rather than
+   sitting politely inside it. .fine clips the overflow. */
+.fine__words--l{ left:-1.5vw;  text-align:left; }
+.fine__words--r{ right:-1.5vw; text-align:right; align-items:flex-end; }
+
+/* The beat: whichever side is on gets full opacity and a small kick. */
+.fine.is-l .fine__words--l,
+.fine.is-r .fine__words--r{
+  opacity:1;
+  transform:translateY(-50%) scale(1.045);
+}
+
+.fine__stop{
+  position:relative; z-index:3;
+  margin-top:calc(min(38vmin, 300px) * .16);
+  padding:.85rem 1.6rem;
+  border:1px solid rgba(255,255,255,.5);
+  border-radius:999px;
+  background:rgba(20,16,12,.55);
+  backdrop-filter:blur(8px);
+  color:#fff;
+  font-family:inherit;
+  font-size:clamp(.8rem, 2.4vw, .95rem);
+  font-weight:700;
+  letter-spacing:.16em;
+  cursor:pointer;
+  transition:background 180ms, border-color 180ms, transform 160ms;
+}
+.fine__stop:hover{ background:rgba(255,255,255,.18); border-color:#fff; }
+.fine__stop:active{ transform:scale(.96); }
+.fine__stop:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+/* The audio player has to exist and be laid out for YouTube to behave, but it
+   is not part of the picture. Clipped rather than display:none, which would
+   stop it playing at all. */
+.fine__player{
+  position:absolute; width:1px; height:1px;
+  bottom:0; left:0;
+  overflow:hidden; opacity:.01;
+  pointer-events:none;
+}
+.fine__player iframe{ width:200px; height:200px; border:0; }
+
 /* ---------- accessibility ---------- */
 
 @media (prefers-reduced-motion:reduce){
+  /* No flashing: both sides stay lit and still. */
+  .fine__words{ opacity:.85; transition:none; }
+  .fine.is-l .fine__words--l,
+  .fine.is-r .fine__words--r{ transform:translateY(-50%); }
+
   .slide{ transition:none; }
   .slide.is-active img{ animation:none; }
   .passengers::before{ animation:none; }

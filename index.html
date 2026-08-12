@@ -112,6 +112,33 @@
     <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-loud"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
     <svg viewBox="0 0 24 24" aria-hidden="true" class="ico-muted"><path d="M4 9v6h4l5 4V5L8 9H4zm11 1.4L16.6 12 15 13.6l1.1 1.1L17.7 13l1.6 1.6 1.1-1.1L18.8 12l1.6-1.6-1.1-1.1-1.6 1.6-1.6-1.6z"/></svg>
   </button>
+
+  <!-- Opens the interruption. Same shape as mute so the pair reads as a set. -->
+  <button class="mute skull" id="skullBtn" type="button" aria-label="Something else entirely">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C7.6 2 4 5.4 4 9.6c0 2.2 1 4.2 2.6 5.5.3.3.4.6.4 1V18c0 .6.4 1 1 1h1.2c.5 0 .8-.4.8-.9V17c0-.6.4-1 1-1h2c.6 0 1 .4 1 1v1.1c0 .5.3.9.8.9H16c.6 0 1-.4 1-1v-1.9c0-.4.1-.7.4-1C19 13.8 20 11.8 20 9.6 20 5.4 16.4 2 12 2zM9 12a2 2 0 110-4 2 2 0 010 4zm6 0a2 2 0 110-4 2 2 0 010 4zm-3 8.2l-.9 1.4c-.2.3-.6.4-.9.2l-.6-.4c-.3-.2-.4-.6-.2-.9l.7-1.1h1.9zm1.9-.8l.7 1.1c.2.3.1.7-.2.9l-.6.4c-.3.2-.7.1-.9-.2l-.9-1.4h1.9z"/></svg>
+  </button>
+</div>
+
+<!-- The interruption. Hidden until the skull is pressed, then it takes the
+     whole screen: the words alternate on a fixed beat, the audio loops, and
+     nothing returns to normal until STOP THIS SHIT is pressed. -->
+<div class="fine" id="fine" hidden>
+  <div class="fine__bg" aria-hidden="true"></div>
+
+  <div class="fine__words fine__words--l" aria-hidden="true">
+    <span>FINE</span><span>FINE</span><span>FINE</span>
+  </div>
+  <div class="fine__words fine__words--r" aria-hidden="true">
+    <span>SHYT</span><span>SHYT</span><span>SHYT</span>
+  </div>
+
+  <img class="fine__face" src="fineshyt.png" alt="" decoding="async">
+
+  <button class="fine__stop" id="fineStop" type="button">STOP THIS SHIT</button>
+
+  <!-- Audio source for this mode: the same YouTube route the songs take,
+       kept out of sight rather than made part of the composition. -->
+  <div class="fine__player" aria-hidden="true"><div id="fineplayer"></div></div>
 </div>
 
 <!-- No entry gate: the play button click is itself the user gesture that
