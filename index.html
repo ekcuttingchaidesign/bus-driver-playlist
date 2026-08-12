@@ -57,13 +57,16 @@
       </picture>
     </div>
 
+    <!-- ?v= on these: the artwork behind these filenames was replaced while
+         the names stayed the same, which is the one change a browser cache
+         cannot detect. Bump it whenever a slide's file is swapped. -->
     <div class="slide" data-slide="2">
       <picture>
-        <source media="(orientation: portrait)" type="image/webp" srcset="images/03p-720.webp 720w, images/03p.webp 1080w" sizes="100vw">
-        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/03p-720.jpg 720w, images/03p.jpg 1080w" sizes="100vw">
-        <source type="image/webp" srcset="images/03-1280.webp 1280w, images/03.webp 1920w" sizes="100vw">
-        <source type="image/jpeg" srcset="images/03-1280.jpg 1280w, images/03.jpg 1920w" sizes="100vw">
-        <img src="images/03.jpg" alt="" decoding="async" loading="eager">
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/03p-720.webp?v=3 720w, images/03p.webp?v=3 1080w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/03p-720.jpg?v=3 720w, images/03p.jpg?v=3 1080w" sizes="100vw">
+        <source type="image/webp" srcset="images/03-1280.webp?v=3 1280w, images/03.webp?v=3 1920w" sizes="100vw">
+        <source type="image/jpeg" srcset="images/03-1280.jpg?v=3 1280w, images/03.jpg?v=3 1920w" sizes="100vw">
+        <img src="images/03.jpg?v=3" alt="" decoding="async" loading="eager">
       </picture>
     </div>
 
