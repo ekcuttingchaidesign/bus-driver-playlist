@@ -109,6 +109,11 @@ would be disorienting and would obscure a player we're required to keep visible.
 Edit `playlist.json`. The loader accepts three shapes, so an exported song list
 can be dropped in without reformatting.
 
+**Order matters for exactly one row:** the first song listed is the one every
+visit opens on, and it is left out of the shuffle. Move a different song to the
+top to change what plays when someone arrives. `film` and `year` are optional —
+without them the display title is just the song name.
+
 **Song list (current).** Full watch URLs, with metadata used for the display
 title (`Song — Film (Year)`):
 

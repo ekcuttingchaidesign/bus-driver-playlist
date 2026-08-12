@@ -378,8 +378,12 @@ The track-list path is kept as a fallback for when `playlistId` is absent.
 
 ### 5.5 Playlist logic
 
-- Fisher-Yates shuffle on load; reshuffle when exhausted, never repeating the
-  last-played track as the first of the new cycle.
+- **The first song in `playlist.json` is the opener and is never shuffled.**
+  Everything after it gets a Fisher-Yates shuffle on load. Every visit starts
+  on the same song by design; the rest of the ride is different each time.
+- Reshuffle when exhausted, never repeating the last-played track as the first
+  of the new cycle. The opener is not pinned again after a wrap — it only
+  governs how a visit begins.
 - On player error (video removed / region-blocked / embedding disabled): log,
   drop it from this session's queue, advance. Never leave the user in silence.
 

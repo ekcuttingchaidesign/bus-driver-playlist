@@ -604,6 +604,17 @@ body{
   white-space:nowrap;
 }
 .passengers[hidden]{ display:none; }
+
+/* Sits under the counter as an aside, not a second pill: no border or
+   backdrop, so it reads as a muttered aside rather than another control. */
+.note{
+  margin:-.15rem 0 0;
+  font-size:clamp(.68rem, 2vw, .76rem);
+  color:rgba(244,230,205,.44);
+  letter-spacing:.01em;
+  text-align:center;
+  text-shadow:0 1px 3px rgba(0,0,0,.6);
+}
 .passengers b{ color:var(--amber); font-weight:700; }
 
 /* Live indicator. */

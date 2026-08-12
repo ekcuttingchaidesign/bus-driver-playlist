@@ -1,8 +1,13 @@
 {
   "name": "Bollywood Bus Driver / Roadside Retro Playlist",
   "description": "30-song Bollywood roadside/cassette-era playlist with direct YouTube video links.",
-  "song_count": 30,
+  "song_count": 31,
+  "//": "The first song always opens the visit; everything after it shuffles.",
   "songs": [
+    {
+      "title": "Chori Chori Dil Tera Churayenge",
+      "youtube_url": "https://www.youtube.com/watch?v=9MVbvDX-u54"
+    },
     {
       "title": "Dheere Dheere Se Meri Zindagi Mein Aana",
       "film": "Aashiqui",
@@ -103,7 +108,7 @@
       "title": "Tu Cheez Badi Hai Mast Mast",
       "film": "Mohra",
       "year": 1994,
-      "youtube_url": "https://www.youtube.com/watch?v=K-pX4qwtAxA"
+      "youtube_url": "https://www.youtube.com/watch?v=PufJm6BV8g4"
     },
     {
       "title": "Saat Samundar Paar",
@@ -133,7 +138,7 @@
       "title": "Dil Laga Liya Maine",
       "film": "Dil Hai Tumhaara",
       "year": 2002,
-      "youtube_url": "https://www.youtube.com/watch?v=6qBdQzPnw4E"
+      "youtube_url": "https://www.youtube.com/watch?v=VKJj-abhP3Y"
     },
     {
       "title": "Dekhne Walon Ne",

@@ -31,8 +31,10 @@
     play:      'चलाएँ',
     spotify:   'Spotify',
     ytMusic:   'YT Music',
-    ambOff:    'ट्रैफ़िक की आवाज़ बंद करें',
-    ambOn:     'ट्रैफ़िक की आवाज़ चालू करें',
+    // English on purpose: the button reads AMBIENCE, so its spoken label
+    // matches what is on screen rather than translating it.
+    ambOff:    'Turn ambience off',
+    ambOn:     'Turn ambience on',
     mute:      'आवाज़ बंद करें',
     unmute:    'आवाज़ चालू करें',
   };
@@ -567,7 +569,11 @@
         const res = await fetch('playlist.json', { cache: 'no-cache' });
         const data = await res.json();
         this.playlistId = data.playlistId || null;
-        this.queue = this._shuffle(this._normalise(data));
+        // The first song in playlist.json opens every visit; the rest are
+        // shuffled behind it. Once the queue wraps, ordering is free again —
+        // what matters is the song someone hears when they arrive.
+        const [opener, ...rest] = this._normalise(data);
+        this.queue = opener ? [opener, ...this._shuffle(rest)] : [];
         Links.render(data.links);
       } catch {
         this.playlistId = null;
