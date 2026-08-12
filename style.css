@@ -132,10 +132,10 @@ body{
 .masthead{
   position:fixed; z-index:30;
   top:0; left:0; right:0;
-  /* Top padding clears the topbar at every width. The title is capped at
-     5.46rem while the viewport keeps narrowing, so a centred line runs into
-     the right-hand controls from about 1280px down without this. */
-  padding:calc(var(--pad) + 3.4rem) var(--pad) 3.2rem;
+  /* The artwork is narrow enough to sit beside the right-hand controls, so
+     it only needs a little clearance here. Phones centre the topbar, so
+     they keep the full drop — see the ≤640px block. */
+  padding:calc(var(--pad) + 1rem) var(--pad) 2.6rem;
   text-align:center;
   pointer-events:none;
 
@@ -166,7 +166,7 @@ body{
    instead of the photograph — and render as a black slab. */
 .masthead__title img{
   display:block;
-  width:min(46vw, 560px);
+  width:min(34vw, 420px);
   height:auto;
   margin-inline:auto;
   filter:drop-shadow(0 6px 18px rgba(0,0,0,.55));
@@ -176,7 +176,7 @@ body{
   margin:.5rem 0 0;
   color:rgba(255,255,255,.9);
   font-weight:600;
-  font-size:clamp(1.45rem, 4.6vw, 2.05rem);
+  font-size:clamp(1.05rem, 3.1vw, 1.42rem);
   line-height:1.4;
   text-shadow:0 2px 4px rgba(0,0,0,.5), 0 4px 22px rgba(0,0,0,.55);
 }
@@ -590,6 +590,9 @@ body{
      they get their own centred row and the masthead starts below them. */
   .topbar{ left:0; right:0; justify-content:center; top:calc(var(--pad) + .1rem); }
   .links a{ padding:.36rem .7rem; font-size:.72rem; }
+  /* Topbar is centred here, so the masthead must start below it. */
+  .masthead{ padding-top:calc(var(--pad) + 4rem); }
+  .masthead__title img{ width:72vw; }
 
   .player{ width:100%; padding-right:12px; }
   .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }
