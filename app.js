@@ -13,6 +13,9 @@
   // handling. Must match --disc-native in style.css.
   const DISC_NATIVE = 200;
 
+  // watch?v=, youtu.be/, /embed/ and /shorts/ all carry the same 11-char ID.
+  const YT_ID = /(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{11})/;
+
   const MARQUEE_GAP_PX = 40;   // must match --marquee-gap in style.css
   const MARQUEE_SPEED  = 42;   // px per second — comfortable reading pace
 
@@ -516,13 +519,34 @@
         const res = await fetch('playlist.json', { cache: 'no-cache' });
         const data = await res.json();
         this.playlistId = data.playlistId || null;
-        this.queue = this._shuffle((data.tracks || []).filter((t) => t && t.videoId));
+        this.queue = this._shuffle(this._normalise(data));
         Links.render(data.links);
       } catch {
         this.playlistId = null;
         this.queue = [];
       }
       return this.playlistId ? 1 : this.queue.length;
+    },
+
+    // Accepts either shape, so an exported song list can be dropped in as-is:
+    //   { tracks: [{ videoId, title }] }
+    //   { songs:  [{ title, film, year, youtube_url }] }
+    _normalise(data) {
+      const rows = data.tracks || data.songs || [];
+      return rows.map((r) => {
+        if (!r) return null;
+        const url = typeof r.youtube_url === 'string' ? r.youtube_url : '';
+        const id = r.videoId || (url.match(YT_ID) || [])[1];
+        if (!id) return null;                 // no usable ID: drop the row
+
+        // Build a display title from whatever metadata came with it. Falls
+        // back to YouTube's own title at play time if there is none.
+        let title = (r.title || '').trim();
+        if (title && r.film) {
+          title += ` — ${r.film}${r.year ? ` (${r.year})` : ''}`;
+        }
+        return title ? { videoId: id, title } : { videoId: id };
+      }).filter(Boolean);
     },
 
     // In playlist mode YouTube handles ordering, advancing and skipping

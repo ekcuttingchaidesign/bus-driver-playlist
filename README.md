@@ -106,7 +106,23 @@ would be disorienting and would obscure a player we're required to keep visible.
 
 ## Adding songs
 
-Edit `playlist.json`. Two modes:
+Edit `playlist.json`. The loader accepts three shapes, so an exported song list
+can be dropped in without reformatting.
+
+**Song list (current).** Full watch URLs, with metadata used for the display
+title (`Song — Film (Year)`):
+
+```json
+{ "songs": [
+  { "title": "…", "film": "…", "year": 1991,
+    "youtube_url": "https://www.youtube.com/watch?v=…" }
+] }
+```
+
+`watch?v=`, `youtu.be/`, `/embed/` and `/shorts/` URLs all work. Rows without a
+usable ID are dropped rather than breaking the list.
+
+The two older shapes still work:
 
 **Playlist mode (current).** Point at a YouTube playlist and YouTube handles
 ordering, auto-advance and skipping unplayable entries:
