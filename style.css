@@ -505,10 +505,42 @@ body{
 .mute.is-muted .ico-muted{ display:block; }
 .mute.is-muted .ico-loud { display:none; }
 
-.ico-amb-off{ display:none; }
-.mute.is-off .ico-amb-off{ display:block; }
-.mute.is-off .ico-amb-on { display:none; }
-.mute.is-off{ background:rgba(20,16,12,.42); color:rgba(255,255,255,.45); }
+/* Ambience toggle. Frosted fill in both states — only the stroke and the
+   dot carry the colour, so it never reads as a solid chip. */
+.amb{
+  display:inline-flex; align-items:center; gap:.5rem;
+  height:42px;
+  padding:0 .95rem;
+  border-radius:999px;
+  border:1.5px solid rgba(74,222,128,.7);
+  background:rgba(255,255,255,.10);
+  backdrop-filter:blur(10px) saturate(160%);
+  -webkit-backdrop-filter:blur(10px) saturate(160%);
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.28);
+  color:#fff;
+  font-family:inherit; font-size:.78rem; font-weight:600;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:border-color 220ms, background 220ms, transform 180ms;
+}
+.amb:hover{ background:rgba(255,255,255,.17); }
+.amb:active{ transform:scale(.96); }
+.amb:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+.amb__dot{
+  width:9px; height:9px; flex:0 0 auto;
+  border-radius:50%;
+  background:#4ade80;
+  box-shadow:0 0 0 3px rgba(74,222,128,.20), 0 0 8px rgba(74,222,128,.65);
+  transition:background 220ms, box-shadow 220ms;
+}
+
+/* Off: same glass, orange stroke and dot. */
+.amb.is-off{ border-color:rgba(255,150,80,.75); }
+.amb.is-off .amb__dot{
+  background:#ff9650;
+  box-shadow:0 0 0 3px rgba(255,150,80,.20), 0 0 8px rgba(255,150,80,.6);
+}
 
 /* passengers ------------------------------------------------------ */
 
