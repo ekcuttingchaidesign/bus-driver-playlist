@@ -605,15 +605,21 @@ body{
 }
 .passengers[hidden]{ display:none; }
 
-/* Sits under the counter as an aside, not a second pill: no border or
-   backdrop, so it reads as a muttered aside rather than another control. */
+/* An aside, not a second pill: no border or backdrop, so it reads as muttered
+   rather than as another control. Parked in the bottom-right corner, clear of
+   the player and the counter. */
 .note{
-  margin:-.15rem 0 0;
+  position:fixed;
+  right:var(--pad);
+  bottom:calc(var(--pad) + var(--safe-b));
+  z-index:11;
+  margin:0;
   font-size:clamp(.68rem, 2vw, .76rem);
   color:rgba(244,230,205,.44);
   letter-spacing:.01em;
-  text-align:center;
+  text-align:right;
   text-shadow:0 1px 3px rgba(0,0,0,.6);
+  pointer-events:none;
 }
 .passengers b{ color:var(--amber); font-weight:700; }
 
@@ -652,6 +658,14 @@ body{
   /* Topbar is centred here, so the masthead must start below it. */
   .masthead{ padding-top:calc(var(--pad) + 3.3rem); }
   .masthead__title img{ width:72vw; }
+
+  /* No room for a corner here: the counter is centred and the note is wider
+     than the gap beside it, so the two collide. Back into the stack. */
+  .note{
+    position:static;
+    margin-top:-.15rem;
+    text-align:center;
+  }
 
   .player{ width:100%; padding-right:12px; }
   .player__meta{ flex:1 1 auto; width:auto; margin-left:16px; margin-right:12px; }

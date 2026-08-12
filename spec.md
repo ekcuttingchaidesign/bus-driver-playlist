@@ -676,8 +676,12 @@ between horns, longer is fine.
   theory — a turn skipped because playback is paused waits out a *fresh*
   interval rather than firing immediately on resume, so two audible horns are
   never closer than 40s.
-- **Gated on:** music actually playing, not muted, tab not hidden. A horn over
-  a paused page, or into a backgrounded tab, would read as a bug.
+- **Gated on:** the AMBIENCE toggle being on, not muted, tab not hidden. The
+  horn belongs to the street rather than to the music, so it follows the same
+  switch as the traffic bed — a horn sounding after someone has switched the
+  street off is precisely the noise they reached for that button to stop.
+  Deliberately *not* gated on playback: at 45s a visitor may still be listening
+  to the street without having pressed play, and a horn belongs there.
 - **Web Audio, not `<audio>`.** iOS ignores `HTMLAudioElement.volume`, so an
   `<audio>` horn would play at full device volume on every iPhone regardless of
   what we set. A `GainNode` is respected everywhere. The `AudioContext` is

@@ -426,13 +426,18 @@
       this._first = false;
 
       this.timer = setTimeout(() => {
-        // Gated like the ambience — not on the music. At 45s a visitor may
-        // still be listening to traffic without having pressed play, and a
-        // horn belongs there. Never while muted, never in a hidden tab.
-        // A skipped turn waits out a fresh interval, so two audible horns
-        // are never closer than MIN_GAP_MS.
+        // Gated with the ambience, not the music. At 45s a visitor may still
+        // be listening to the street without having pressed play, and a horn
+        // belongs there. The AMBIENCE button covers the whole street — bed
+        // and horns together — since a horn over a switched-off street is
+        // exactly the noise someone reached for that button to stop.
+        // Never while muted, never in a hidden tab. A skipped turn waits out
+        // a fresh interval, so two audible horns are never closer than
+        // MIN_GAP_MS.
         const awake = AudioBus.ctx && AudioBus.ctx.state === 'running';
-        if (awake && !document.hidden && !Player.muted) this.blast();
+        if (awake && !document.hidden && !Player.muted && Ambience.enabled) {
+          this.blast();
+        }
         this._schedule();
       }, wait);
     },
