@@ -29,7 +29,7 @@
      app.js pairs it with fresh HTML, which breaks the page in confusing ways
      (a stale stylesheet leaves the record face unstyled and the video shows
      through it). Bump the number whenever either file changes. -->
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -115,13 +115,16 @@
 
   <!-- Opens the interruption. Same shape as mute so the pair reads as a set. -->
   <button class="mute skull" id="skullBtn" type="button" aria-label="Something else entirely">
-    <img src="skull.svg" alt="" aria-hidden="true">
+    <!-- Sized in the markup, not only in CSS: the file's own dimensions are
+         58x66, so a browser holding an older stylesheet would render it at
+         that size and burst out of the 42px circle. -->
+    <img src="skull.svg" alt="" aria-hidden="true" width="21" height="21">
   </button>
 </div>
 
 <!-- The interruption. Hidden until the skull is pressed, then it takes the
      whole screen: the words alternate on a fixed beat, the audio loops, and
-     nothing returns to normal until STOP THIS SHIT is pressed. -->
+     nothing returns to normal until SAVE ME PLEASE is pressed. -->
 <div class="fine" id="fine" hidden>
   <div class="fine__bg" aria-hidden="true"></div>
 
@@ -197,6 +200,6 @@
   <p class="note">Driver k pass Youtube premium nhi hai</p>
 </div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
