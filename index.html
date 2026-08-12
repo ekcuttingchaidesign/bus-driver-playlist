@@ -69,8 +69,10 @@
 
     <div class="slide" data-slide="3">
       <picture>
-        <source media="(orientation: portrait)" type="image/webp" srcset="images/04p-720.webp 720w, images/04p.webp 1080w" sizes="100vw">
-        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/04p-720.jpg 720w, images/04p.jpg 1080w" sizes="100vw">
+        <!-- 941w, not 1080w like the others: that is this artwork's native
+             width, and upscaling it would only invent detail. -->
+        <source media="(orientation: portrait)" type="image/webp" srcset="images/04p-720.webp 720w, images/04p.webp 941w" sizes="100vw">
+        <source media="(orientation: portrait)" type="image/jpeg" srcset="images/04p-720.jpg 720w, images/04p.jpg 941w" sizes="100vw">
         <source type="image/webp" srcset="images/04-1280.webp 1280w, images/04.webp 1920w" sizes="100vw">
         <source type="image/jpeg" srcset="images/04-1280.jpg 1280w, images/04.jpg 1920w" sizes="100vw">
         <img src="images/04.jpg" alt="" decoding="async" loading="eager">
