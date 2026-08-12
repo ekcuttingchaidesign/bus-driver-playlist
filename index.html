@@ -15,7 +15,11 @@
 <link rel="preload" as="font" type="font/woff2" href="fonts/noto-devanagari.woff2" crossorigin>
 <link rel="preload" as="image" media="(orientation: landscape)" href="images/01.webp" imagesrcset="images/01-1280.webp 1280w, images/01.webp 1920w" imagesizes="100vw">
 <link rel="preload" as="image" media="(orientation: portrait)" href="images/01p.webp" imagesrcset="images/01p-720.webp 720w, images/01p.webp 1080w" imagesizes="100vw">
-<link rel="stylesheet" href="style.css">
+<!-- ?v= is a cache buster: without it a browser holding an old style.css or
+     app.js pairs it with fresh HTML, which breaks the page in confusing ways
+     (a stale stylesheet leaves the record face unstyled and the video shows
+     through it). Bump the number whenever either file changes. -->
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -154,6 +158,6 @@
   <p class="passengers" id="passengers" hidden></p>
 </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
