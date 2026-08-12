@@ -576,7 +576,7 @@ worker/            — counter service (Cloudflare Worker + Durable Object)
 
 ### 12.1 Copy is now Hindi throughout
 
-Masthead: **उत्तर प्रदेश म्यूज़िकल परिवहन** (white, bold, 800 weight), with
+Masthead: **उत्तर प्रदेश म्यूज़िकल परिवाहन** (white, bold, 800 weight), with
 **आपका स्वागत करती है** beneath it. Every other string — controls, counter,
 errors, the boarding button — is Devanagari too, and `<html lang="hi">`.
 All UI text lives in the `T` object at the top of `app.js`, so wording changes
