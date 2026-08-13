@@ -1,7 +1,7 @@
 {
   "name": "Bollywood Bus Driver / Roadside Retro Playlist",
-  "description": "30-song Bollywood roadside/cassette-era playlist with direct YouTube video links.",
-  "song_count": 31,
+  "description": "Bollywood roadside/cassette-era playlist with direct YouTube video links. The first song opens every visit; the rest shuffle.",
+  "song_count": 51,
   "//": "The first song always opens the visit; everything after it shuffles.",
   "songs": [
     {
@@ -187,6 +187,66 @@
       "film": "Raaz",
       "year": 2002,
       "youtube_url": "https://www.youtube.com/watch?v=ZVG5u3_o93U"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=bBjVLCAAM1A"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=thjRNwjmAdQ"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=ixCnsZswdpU"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=47DstHmE-bE"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=yEbfkdwmxkk"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=F_J9ZnH6icw"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=3nzDp3eLYHY"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=DEdPFepZPb4"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=1cguY933WI4"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=5y_TCKNzAMI"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=q0mS2HLjJys"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=PS79kDGFM0M"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=2d6AH2bsQEM"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=4EHNgvt8Nuc"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=fHpn5IJIQCI"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=BRjE1nsI1X4"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=e3xfyE2zli0"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=zOOWVlhw5fQ"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=9GJToQrlt4Y"
+    },
+    {
+      "youtube_url": "https://www.youtube.com/watch?v=POkRQw1VbcU"
     }
   ]
 }
