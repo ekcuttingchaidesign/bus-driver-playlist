@@ -923,3 +923,33 @@ faded, so FINE and SHYT strictly alternate and never share the screen.
 **Lead-in.** `Fine.LEAD_IN_MS` (600ms) holds the words back after the screen
 appears, so the mode arrives in two steps: face and button, then the words.
 Pressing the button inside that window cancels the pending start.
+
+### 14.4 iOS silences Web Audio — the ring switch
+
+Reported on an iPhone 17 in Chrome, and independently by a visitor: the songs
+are audible, the traffic bed and the horn are not.
+
+Not a bug in the fade or the gate. On iOS every browser is WebKit, and WebKit
+silences **Web Audio** whenever the ring/silent switch is off, while **HTML
+media** plays regardless. The songs are a YouTube iframe — HTML media. The bed
+and the horn are ours, through an `AudioContext`. So the switch cuts exactly
+half the soundscape, and only on iPhones.
+
+Two mitigations, applied together because their support does not overlap:
+
+- `navigator.audioSession.type = 'playback'` — the sanctioned route, recent
+  iOS only.
+- A silent looping `<audio>` element started inside the same gesture. Starting
+  HTML media moves the session category to playback, after which Web Audio is
+  no longer silenced. It must be real (silent) audio: a muted element does not
+  move the session. The WAV is built in JS rather than shipped as a file.
+
+Both are gated on iOS and are no-ops elsewhere. `__busAudio().session` reports
+whether the element is running.
+
+**If this proves insufficient**, the deterministic fix is to move the bed and
+horn off Web Audio onto `<audio>` elements, which the switch never silences —
+paying for it by baking the levels into the files, since iOS ignores
+`HTMLAudioElement.volume` (§14.1). `ambience.mp3` at 50% amplitude and
+`bus-horn.mp3` at 42%, with mute implemented as `pause()`. The cost is the
+2-second fade-in, which cannot be done without a volume ramp.

@@ -353,6 +353,59 @@
 
   // One shared context. Browsers cap how many can exist, and the effects
   // below have no reason to own separate ones.
+  /* ------------------------------------------------------------------ *
+   * iOS audio session                                                  *
+   *                                                                    *
+   * On iOS every browser is WebKit, and WebKit silences Web Audio when *
+   * the ring/silent switch is off — while HTML media plays regardless. *
+   * That is why the songs are audible on an iPhone with the switch     *
+   * down and the traffic and horn are not: the songs are a YouTube     *
+   * iframe, the traffic and horn are ours, through an AudioContext.    *
+   *                                                                    *
+   * Two ways out, applied together because their support does not      *
+   * overlap. navigator.audioSession is the sanctioned one and needs a  *
+   * recent iOS. The silent looping element is the old trick: starting  *
+   * HTML media moves the session to playback, and Web Audio stops      *
+   * being silenced. Both are no-ops off iOS.                           *
+   * ------------------------------------------------------------------ */
+
+  const isIOS = /iP(hone|od|ad)/.test(navigator.platform)
+    // iPads report as Mac, so touch points are what separates them.
+    || (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+
+  const AudioSession = {
+    el: null,
+
+    arm() {
+      if (!isIOS || this.el) return;
+
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = 'playback';
+      } catch { /* not supported: the element below is the fallback */ }
+
+      // Half a second of silence, built here rather than shipped as a file.
+      // It has to be real audio — a muted element does not move the session.
+      const RATE = 8000, SECONDS = 0.5;
+      const frames = RATE * SECONDS;
+      const buf = new ArrayBuffer(44 + frames * 2);
+      const view = new DataView(buf);
+      const ascii = (off, s) => [...s].forEach((c, i) => view.setUint8(off + i, c.charCodeAt(0)));
+      ascii(0, 'RIFF'); view.setUint32(4, 36 + frames * 2, true);
+      ascii(8, 'WAVEfmt '); view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+      view.setUint32(24, RATE, true); view.setUint32(28, RATE * 2, true);
+      view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+      ascii(36, 'data'); view.setUint32(40, frames * 2, true);   // samples stay zero
+
+      const a = new Audio(URL.createObjectURL(new Blob([buf], { type: 'audio/wav' })));
+      a.loop = true;
+      a.playsInline = true;
+      a.setAttribute('playsinline', '');
+      a.play().catch(() => { /* no gesture yet; the next one retries */ });
+      this.el = a;
+    },
+  };
+
   const AudioBus = {
     ctx: null,
 
@@ -514,6 +567,9 @@
   // button. In practice that is the visitor's first tap, click or keypress,
   // well before they reach for play. Calling this repeatedly is harmless.
   const armEffects = () => {
+    // Before the context, and inside the same gesture: on iOS this decides
+    // whether anything the context plays is audible at all.
+    AudioSession.arm();
     if (!AudioBus.init()) return;
     AudioBus.resume();
     Horn.arm();
@@ -1026,6 +1082,12 @@
     ambience: Ambience.gain ? +Ambience.gain.gain.value.toFixed(3) : 'not started',
     muted:    Player.muted,
     playing:  Player.isPlaying(),
+    // iOS only: whether the silent element that moves the audio session to
+    // playback is running. "armed, paused" means iOS refused it, and the
+    // ring switch will still silence the traffic and the horn.
+    session:  !isIOS ? 'not iOS'
+      : AudioSession.el ? (AudioSession.el.paused ? 'armed, paused' : 'armed, playing')
+      : 'not armed',
   });
 
   // Queue the ambience now; it becomes audible at the first interaction.
