@@ -894,8 +894,16 @@ ear; everything else about the mode is independent of it.
 
 **Its own player.** A second `YT.Player` on `#fineplayer` rather than
 borrowing the music one, so the playlist keeps its position and resumes on the
-exact song it was paused on. Built on first press and kept for the session:
-rebuilding the iframe would lose the user gesture that permits sound.
+exact song it was paused on. Kept for the session; rebuilding the iframe would
+lose the user gesture that permits sound.
+
+**Built at load, not on first press.** Creating the player on the press meant
+`playVideo()` ran inside `onReady` — an async callback, after the tap had
+ended — and mobile browsers only honour a play issued inside the gesture. The
+first press was silent on a phone and the second worked, because by then the
+player existed. `Fine.prepare()` now builds it during boot so every press
+plays synchronously. A `pointerdown` retry on the overlay covers the narrow
+case where the skull is pressed before the player finished building.
 
 **Everything else stops.** The music pauses (and resumes only if it was
 playing), the ambience bed fades out, and the horn is suppressed — three

@@ -946,6 +946,8 @@
     timer: null,
     leadIn: null,
     _resumeMusic: false,
+    // Bound once so add/removeEventListener see the same function.
+    _retryBound: null,
     _built: false,
 
     open() {
@@ -962,6 +964,7 @@
       el.fineStop.focus();
       this._build();
       this._audio();
+      el.fine.addEventListener('pointerdown', this._retryBound);
 
       // Words come in after the lead-in, not with the screen.
       this.leadIn = setTimeout(() => this._beat(), this.LEAD_IN_MS);
@@ -977,6 +980,7 @@
       this.leadIn = null;
       el.fine.hidden = true;
       el.fine.classList.remove('is-fine', 'is-shyt');
+      el.fine.removeEventListener('pointerdown', this._retryBound);
 
       try { if (this.yt) this.yt.stopVideo(); } catch { /* never loaded */ }
 
@@ -1022,16 +1026,13 @@
 
     // Built on first open and kept afterwards: rebuilding the iframe would
     // lose the user gesture that lets it make sound at all.
-    _audio() {
-      if (this.yt) {
-        try {
-          if (Player.muted) this.yt.mute(); else this.yt.unMute();
-          this.yt.seekTo(0, true);
-          this.yt.playVideo();
-        } catch { /* not ready yet; onReady below covers it */ }
-        return;
-      }
-      if (!window.YT || !YT.Player) return;   // API never loaded: silent, still funny
+    // Built once, up front — not on the first press. Creating the player and
+    // playing it in its onReady means the play call lands in an async callback
+    // long after the tap has ended, and mobile browsers only honour a play
+    // that happens inside the gesture. That is why the first press used to be
+    // silent on a phone and the second worked: by then the player existed.
+    prepare() {
+      if (this.yt || !window.YT || !YT.Player) return;
 
       this.yt = new YT.Player('fineplayer', {
         width: '200',
@@ -1054,6 +1055,27 @@
           },
         },
       });
+    },
+
+    // Only ever plays an existing player, so the call sits inside the press.
+    _audio() {
+      this.prepare();                   // in case the API arrived late
+      if (!this.yt) return;             // no API at all: silent, still funny
+      try {
+        if (Player.muted) this.yt.mute(); else this.yt.unMute();
+        this.yt.seekTo(0, true);
+        this.yt.playVideo();
+      } catch { /* not constructed yet; onReady covers it */ }
+    },
+
+    // Last resort for the narrow case where the skull is pressed before the
+    // player finished building: any tap on the overlay retries the play, still
+    // inside a gesture. Silent no-op when it is already running.
+    _retry() {
+      if (!this.active || !this.yt) return;
+      try {
+        if (this.yt.getPlayerState() !== YT.PlayerState.PLAYING) this.yt.playVideo();
+      } catch { /* not ready */ }
     },
 
     syncMute() {
@@ -1119,6 +1141,11 @@
     // browsers require before audio may start; from then on loadVideoById
     // carries that permission forward for the rest of the session.
     Player.create();
+
+    // The interruption's player is built now rather than on the first press,
+    // so that press can play it synchronously. See Fine.prepare().
+    Fine._retryBound = () => Fine._retry();
+    Fine.prepare();
   })();
 
   // Horn.arm() must run inside the click itself — see the note on its arm().
