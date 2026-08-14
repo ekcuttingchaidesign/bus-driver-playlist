@@ -37,7 +37,7 @@
      app.js pairs it with fresh HTML, which breaks the page in confusing ways
      (a stale stylesheet leaves the record face unstyled and the video shows
      through it). Bump the number whenever either file changes. -->
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 
@@ -209,6 +209,27 @@
 
   <!-- The ads between songs are not a bug, so the site owns up to them. -->
   <p class="note">Driver k pass Youtube premium nhi hai</p>
+
+  <!-- Byline, opposite corner to the note. Icons are drawn here rather than
+       fetched, so the corner costs no extra request. -->
+  <p class="credit">
+    <span>Developed by Shashank</span>
+    <a href="https://www.instagram.com/ek_cutting_chai/" target="_blank"
+       rel="noopener noreferrer" aria-label="Instagram — ek_cutting_chai">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5" fill="none"
+              stroke="currentColor" stroke-width="1.9"/>
+        <circle cx="12" cy="12" r="4.1" fill="none" stroke="currentColor" stroke-width="1.9"/>
+        <circle cx="17.3" cy="6.7" r="1.25" fill="currentColor"/>
+      </svg>
+    </a>
+    <a href="https://x.com/_ekcuttingchai" target="_blank"
+       rel="noopener noreferrer" aria-label="X — _ekcuttingchai">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="currentColor" d="M3 3h5.1l4 5.4L16.9 3H21l-6.6 8.1L21.6 21h-5.1l-4.3-5.8L7 21H2.9l7-8.6L3 3z"/>
+      </svg>
+    </a>
+  </p>
 </div>
 
 <script src="app.js?v=5"></script>

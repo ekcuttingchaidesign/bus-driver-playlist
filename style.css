@@ -615,6 +615,28 @@ body{
 }
 .passengers[hidden]{ display:none; }
 
+/* Byline, bottom-left. Same weight as the note in the opposite corner, so the
+   two read as a matched pair of footnotes rather than as UI. */
+.credit{
+  position:fixed;
+  left:var(--pad);
+  bottom:calc(var(--pad) + var(--safe-b));
+  z-index:11;
+  margin:0;
+  display:flex; align-items:center; gap:.5rem;
+  font-size:clamp(.68rem, 2vw, .76rem);
+  color:rgba(244,230,205,.44);
+  text-shadow:0 1px 3px rgba(0,0,0,.6);
+}
+.credit a{
+  display:inline-flex;
+  color:inherit;
+  transition:color 180ms, transform 180ms;
+}
+.credit a:hover{ color:var(--cream); transform:translateY(-1px); }
+.credit a:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:4px; }
+.credit svg{ width:15px; height:15px; display:block; }
+
 /* An aside, not a second pill: no border or backdrop, so it reads as muttered
    rather than as another control. Parked in the bottom-right corner, clear of
    the player and the counter. */
@@ -680,6 +702,14 @@ body{
     position:static;
     margin-top:-.15rem;
     text-align:center;
+  }
+
+  /* Same reasoning, and it follows the note in the markup so the stack reads
+     player → counter → note → byline. */
+  .credit{
+    position:static;
+    justify-content:center;
+    margin-top:.05rem;
   }
 
   .player{ width:100%; padding-right:12px; }
